@@ -1,0 +1,3128 @@
+<?xml version="1.0" encoding="EUC-KR"?>
+<scrMap>
+	<alias name="head">
+		<title>TCB - TCB 실사 시스템</title>
+		<css>/common/css/jquery-ui.min.css|/common/css/bootstrap.css|/common/css/bootstrap-theme.css|/common/css/bootstrap-tcsv.css|/common/css/jquery.simple-dtpicker.css
+		</css>
+		<script_src>/common/js/jquery/jquery-1.11.1.js|/common/js/jquery/jquery.validate.min.js|/common/js/jquery/jquery-ui.min.js|/common/js/jquery/messages_ko.js|/common/js/tcb-validation-rules.js|/common/js/bootstrap/bootstrap.min.js|/common/js/common.js|/common/js/biz.js|/common/js/jquery/jquery.blockUI.js|/common/js/bootstrap.file-input.js|/common/js/jquery/jquery.simple-dtpicker.js|/common/js/tcb-number-input.js</script_src>
+	</alias>
+
+	<html name="main_tile" inc="head">
+		<script> <![CDATA[
+   //document.onkeydown = noRefresh;
+    $( document ).ready( function(){
+      //로그아웃
+      $('#btnLogOut').on('click',function(){
+        $('#formLogOut').attr('action', '/logout_proc.do').submit();
+      });
+  });    
+ 
+  function settingDatePicker($objs){
+    $objs.datepicker({
+      prevText: '이전 달',
+      nextText: '다음 달',
+      monthNames: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+      monthNamesShort: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+      dayNames: ['일','월','화','수','목','금','토'],
+      dayNamesShort: ['일','월','화','수','목','금','토'],
+      dayNamesMin: ['일','월','화','수','목','금','토'],
+      dateFormat: 'yy-mm-dd',
+      showMonthAfterYear: true,
+      changeYear : true ,
+      changeMonth : true ,
+      showButtonPanel : true , 
+      yearSuffix: '',
+      gotoCurrent : true,
+      currentText : '오늘',
+      closeText : '닫기',
+      constrainInput: true ,
+      onSelect: function(selectedDate) {
+        // 선택 후 처리
+      }
+    });
+  }
+  $(function() {
+    settingDatePicker($('.tcb_date'));
+    //range설정
+    //$('#frdate').datepicker('option', {onClose:function(){  $('#todate').datepicker('option','minDate',$('#frdate').val()); }});
+    //$('#todate').datepicker('option', {onClose:function(){  $('#frdate').datepicker('option','maxDate',$('#todate').val()); }});
+  });
+  
+]]></script>
+<![CDATA[
+<div class="wide1280">
+  <div class="container-fluid">
+    <div class="row">
+      ${import:tcsv@header1}$
+      ${import:tcsv@left1}$
+      <!-- 컨텐츠영역 -->
+      ${import:#sub}$
+      ${import:tcsv@footer1}$
+    </div><!-- /row -->
+  </div><!-- /container-fluid -->
+</div><!-- /wide1280 -->
+]]>
+	</html>
+	<html name="header1">
+		<script><![CDATA[
+$( document ).ready( function(){
+ //비밀번호 변경하기
+  $('#btnPwChg').on('click', function(){
+     $.ajax({
+         cache: false,
+         type: "get",
+         url: "/pw_chg_proc.ado",
+         data: 'curPw='+$('#curPw').val()+'&newPw='+$('#newPw').val()+'&newPwChk='+$('#newPwChk').val(),
+         dataType: 'json',
+         success: function(json) {
+            alert(json.msg);
+            $('#curPw').val("");
+            $('#newPw').val("");
+            $('#newPwChk').val("");
+            $('#modal-password').modal('hide');
+         },
+         error: function(jqXHR, textStatus, errorThrown) {
+           console.error('ERRORS: ' + textStatus);
+           alert('ERRORS: ' + textStatus);
+         }
+    });
+  }); //click이벤트 cover
+});
+
+
+	
+	
+]]>
+		</script>
+<![CDATA[
+      <nav class="navbar subnavbar">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar" >
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span> 
+            </button>
+            <a class="navbar-brand" href="/"><img src="../images/nicednb-ci-actual.png"></a>
+          </div>
+          <div class="collapse navbar-collapse" id="myNavbar" >
+            <ul class="nav navbar-nav navbar-right sub-collapse mt10" >
+              <li>
+               사용자:${sessionUser.user_id}$(${sessionUser.user_nm}$,${sessionUser.auth_name}$) 
+              </li>
+
+              <li>
+                <button class="btn btn-info btn-sm" type="button" data-toggle="modal" data-target="#modal-password"><span class="glyphicon glyphicon-wrench"></span> 비밀번호 변경</button>
+              </li>
+              <li>
+                <button id="btnLogOut" class="btn btn-warning btn-sm" type="button"><span class="glyphicon glyphicon-log-out"></span> Logout</button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+      
+      
+      <!-- Modal Password -->
+      <div class="modal fade" id="modal-password" role="dialog">
+        <div class="modal-dialog modal-sm">
+          <!-- Modal content-->
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+              <h3 class="modal-title">비밀번호 변경</h3>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+              <!-- Table -->
+              <div class="table-responsive">
+                <table class="table table-info">
+                  <colgroup>
+                    <col width="">
+                    <col width="65%">
+                  </colgroup>
+                  <tbody>
+                  <form name="frmPw" id="frmPw" method="post">
+                    <tr>
+                      <th>현재비밀번호</th>
+                      <td><input id="curPw" class="form-control input-sm" type="password" required="true"></td>
+                    </tr>
+                    <tr>
+                      <th>비밀번호</th>
+                      <td><input id="newPw" class="form-control input-sm" type="password" required="true"></td>
+                    </tr>
+                    <tr>
+                      <th>비밀번호 확인</th>
+                      <td><input id="newPwChk" class="form-control input-sm" type="password" required="true" equalTo="#newPw"></td>
+                    </tr>
+                  </form>
+                  </tbody>
+                </table>
+              </div><!-- /Table -->
+              <!--
+              <p class="table-alert danger"><span class="glyphicon glyphicon-remove"></span> 비밀번호가 일치하지 않습니다.</p>
+              -->
+            </div><!-- /Modal Body -->
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+              <button type="button" class="btn btn-warning" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> 취소</button>
+              <button type="button" id="btnPwChg" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> 변경하기</button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /Modal Password -->  
+]]>
+	</html>
+
+	<html name="footer1">
+<![CDATA[
+      <!-- Footer Content -->
+      <div class="clear-both"></div>
+      <div class="container-fluid footer">
+        <div class="footer-logo col-sm-3">
+          <img src="../images/nice-ci-footer.png" alt="NICE D&amp;B" >
+        </div>
+        <div class="footer-wrap col-sm-9">
+          <div class="footer-link">
+            <a href="#">회사소개</a><span>|</span>
+            <a href="#">개인정보처리방침</a><span>|</span>
+            <a href="#">신용정보활용체재공시</a><span>|</span>
+            <a href="#">이메일무단수집거부</a>
+          </div>
+          <div class="footer-info">
+            <span>04117 서울특별시 마포구 마포대로 217 크레디트센터 14층 (주)나이스디앤비</span><span>|</span>
+            <span>통신판매업신고 : 제2012-서울마포-0168호</span><span>|</span>
+            <span>사업자등록번호 : 107-86-24874</span><span>|</span>
+            <span>TEL : 02-2122-1300</span><span>|</span>
+            <span>COPYRIGHT 2016 NICE D&amp;B Co.,Ltd ALL RIGHTS RESERVED.</span>
+          </div>
+        </div>
+      </div>
+      <form name="formLogOut" id="formLogOut" method="post"></form>
+                
+]]>
+	</html>
+
+
+	<!-- 그룹 마스터용 nav bar -->
+	<html name="left1">
+		<script> <!-- 탭별 화면 변경 -->
+<![CDATA[
+]]>
+		</script>
+<![CDATA[
+      <!-- Menu -->
+      <div class="col-sm-2">
+        <div class="side-navigtion-wrap">
+          <ul class="side-navigtion">
+            ${if(scr_id_start==1)}$
+            <!--관리자용 메뉴-->
+            <li class="${if(scr_id==10020)}$current${endif}$"><a href="/admin_main.do"><img src="../images/main-button-first-sm.png"> 실사배정</a></li>
+            <li class="${if(scr_id==10030)}$current${endif}$"><a href="/admin_status.do"><img src="../images/main-button-second-sm.png"> 실사현황</a></li>
+            <li class="${if(scr_id==10040)}$current${endif}$"><a href="/admin_mem_reg.do"><img src="../images/main-button-third-sm.png"> 실사자등록</a></li>
+            ${endif}$
+            ${if(scr_id_start==2)}$
+            <!--마스터용 메뉴-->
+            <li class="${if(scr_id==20100)}$current${endif}$"><a href="/grp_master_main.do"><img src="../images/main-button-first-sm.png"> 실사배정</a></li>
+            <li class="${if(scr_id==20120)}$current${endif}$"><a href="/grp_master_status.do"><img src="../images/main-button-second-sm.png"> 실사현황</a></li>
+            <li class="${if(scr_id==20110)}$current${endif}$"><a href="/grp_mem_reg.do"><img src="../images/main-button-third-sm.png"> 실사자등록</a></li>
+            ${endif}$
+            ${if(scr_id_start==3)}$
+            <!--실사자용 메뉴-->
+            <li class="${if(scr_id==30200)}$current${endif}$"><a href="/actual_main.do"><img src="../images/main-button-second-sm.png"> 리스트확인</a></li>
+            <li class="${if(scr_id==30210)}$current${endif}$"><a href="/actual_report.do"><img src="../images/main-button-first-sm.png"> 보고서작성</a></li>
+            <li class="${if(scr_id==30230)}$current${endif}$"><a href="/my_info.do"><img src="../images/main-button-third-sm.png"> My Info</a></li>
+            ${endif}$
+
+          </ul>
+        </div>
+      </div>
+]]>
+	</html>
+
+	<!-- 여기까지 Andy 영역 시작 -->
+	<html name="index" inc="head">
+		<script> <![CDATA[
+  $( document ).ready( function(){
+    
+    //로그인
+    /***
+    $('#btnLogOut').on('click',function(){
+      $('#frm1').attr('action', '/login.do').submit();
+    });
+    ***/
+  });
+  
+  function chkFrm1(){
+    //alert('관리자 로긴합니다.');
+    return true;
+  }
+  function chkFrm2(){
+    //alert('실사자 로긴합니다.');
+    return true;
+  }
+  
+]]></script>
+<![CDATA[
+<div class="wide1280">
+  <div class="container-fluid home-wrap">
+    <div class="row">
+      <div class="home-image">
+        <img class="" src="../images/carousel04.jpg" alt="image5">
+      </div>
+      
+      <div class="home-ci"><a href="/"><img src="../images/nicednb-ci.png"></a></div>
+      <div class="home-title"><img src="../images/tcsv-home-title.png" alt="TCB 현장실사 시스템"></div>
+      <div class="home-login">
+        <div class="admin">
+          <div class="home-login-title">관리자용</div>
+          <div class="home-login-subtitle">(실사배정/관리)</div>
+          <table class="login-table">
+            <form name='frm1' id='frm1' action="/login_proc.do?typ=admin" method="post" onSubmit="return chkFrm1();">
+            <tbody>
+              <tr>
+                <td>ID : </td>
+                <td><input type="text" name="id"  class="form-control input-sm" id="id" ></td>
+                <td rowspan="2" class="login-button"><button type="submit" class="btn btn-primary btn-login btn-block">LOGIN</button></td>
+              </tr>
+              <tr>
+                <td>PW :&nbsp;&nbsp;</td>
+                <td class="input-td"><input type="password" name="pw" class="form-control input-sm" id="id"></td>
+              </tr>
+            </tbody>
+            </form>
+          </table>
+        </div>
+        
+        <div class="actual">
+          <div class="home-login-title">실사자용</div>
+          <div class="home-login-subtitle">(실사결과 등록)</div>
+          <table class="login-table">
+            <form name='frm2'  id='frm2' action="/login_proc.do?typ=member" method="post" onSubmit="return chkFrm2();">
+            <tbody>
+              <tr>
+                <td>ID : </td>
+                <td><input type="text" name="id" class="form-control input-sm" id="id" ></td>
+                <td rowspan="2" class="login-button"><button type="submit" class="btn btn-warning btn-login btn-block">LOGIN</button></td>
+              </tr>
+              <tr>
+                <td>PW :&nbsp;&nbsp;</td>
+                <td class="input-td"><input type="password" name="pw" class="form-control input-sm" id="pwd" ></td>
+              </tr>
+            </tbody>
+            </form>
+          </table>
+        </div>
+      </div>
+      <div class="home-footer"><div class="col-sm-6">㈜나이스디앤비  (04117) 서울특별시 마포구 마포대로 217(아현동)</div> <div class="col-sm-6">Copyright 2016 NICE D&amp;B. All rights reserved.</div></div>
+    </div>
+  </div>
+</div>
+]]>
+
+	</html>
+
+	<!-- 여기까지 Andy 영역 끄으으으으으읕 -->
+
+	<!-- 요기 아래부터는 나래 영역임 시자아아아아아악 -->
+	<html name="admin_main">
+		<script>
+<![CDATA[  
+  var  now_s_no ='';  //배정하기 모달을 띄웠을때 선택되어진 S_NO를 저장하기 위함
+ function setv(s_no, addr){
+ 	now_s_no= s_no; 
+ 	$('#cmp_addr').text(addr); //모달의 상세정보 창
+ 	 //조건에 따라 검색한 실사자 테이블.
+ 	$('#typ').val('default');
+ 	srch();
+ 	
+ } 
+ 
+ //실사자 검색함수
+ function srch(){
+ 	//조건에 따라 검색한 실사자 테이블.
+       var html ='<table class="table table-info">';
+				html += '<thead>';
+				html += '<tr>';
+				html += '	<th>선택</th>';
+				html += '	<th>실사업체</th>';
+				html += '	<th>성명</th>';
+				html += '	<th>연락처</th>';
+				html += '	<th>이메일</th>';
+				html += '	<th>주소</th>';
+				html += '</tr>';
+				html += '</thead>';
+				html += '<tbody>';      
+    	 $.ajax({
+             type: "POST",
+              url: "/srch_actual.ado",
+              data: $('#frm_srch').serialize(),
+             dataType: 'json',
+             success: function(json) {
+               	$.each(json.list, function(key, value){
+               		html += '	<tr>';
+					html += '		<td><input type="radio" id="assign_rdo" name="assign_rdo" value="' + value.user_id + '|'+value.user_nm+'"></td>';
+					html += '		<td>'+value.grp_nm+'</td>';
+					html += '		<td>'+value.user_nm+'</td>';
+					html += '		<td>'+value.cell+'</td>';
+					html += '		<td><a href="mailto:'+value.email+'">'+value.email+'</a></td>';
+					html += '		<td>'+value.addr+'</td>';
+					html += '	</tr>';
+               	});
+               	html += '</tbody>';
+				html += '</table>';
+				
+				$('#default_table').html(html);
+				$('#srch_opt_txt').val('');
+				$('#typ').val('default');
+             },
+             error: function(jqXHR, textStatus, errorThrown) {
+               console.error('ERRORS: ' + textStatus);
+               alert('ERRORS: ' + textStatus);
+             }
+        });
+     	
+ 
+ }
+
+  $( document ).ready( function(){
+
+   //엔터키 눌렸을때 검색되게 하기
+   //일단 hidden으로 box를 하나더 만들어야함 
+   $("input[name=srch_opt_txt]").keydown(function (key) {
+      if(key.keyCode == 13){
+          $('#btn_srch_actual').click();          
+      }
+   });
+
+
+    // 엑셀 다운로드
+    $('#btn_excel_down').click(function() {
+      $('#frm_exl').attr('action','/admin_main_excel.do?_resp=excel');
+      $('#frm_exl').submit();
+    });
+
+  //배정하기 모달의 실사자 검색기능
+    //조건검색 초기 셋팅 끝
+
+   //조건 검색
+    $('#btn_srch_actual').click(function() {
+    	$('#typ').val('');
+    	srch();
+    });
+
+    //전체 실사자 보기 
+    $('#go_back').click(function() {
+      $('#typ').val('');
+      $('#srch_option').val('all');
+      $('#srch_opt_txt').val('');
+      srch();
+    });
+    
+    $('#master_list').click(function() {
+      $('#typ').val('master_list');
+      $('#srch_option').val('master');
+      srch();
+    });
+
+   //담당자 지정 하기
+  $('#go_assign_mem').on('click', function(){
+     var ass_info = $('input:radio[name="assign_rdo"]:checked').val();
+     //split로 Userid,와 user_nm 나누기 자바스크립트 찾아볼것 
+     var dataArr = ass_info.split('|');
+     $.ajax({
+         cache: false,
+         type: "get",
+         url: "/mem_assign_act.ado",
+         data: 'user_id='+dataArr[0]+'&s_no='+now_s_no,
+         dataType: 'json',
+         success: function(json) {
+           alert(json.msg);
+           //선택되어진 inputbox에 배정자 명 SET하기
+           $('#ass_'+now_s_no).val(dataArr[1]);
+           $('#modal-assign-list').modal('hide');
+           self.location.reload();
+         },
+         error: function(jqXHR, textStatus, errorThrown) {
+           console.error('ERRORS: ' + textStatus);
+           alert('ERRORS: ' + textStatus);
+         }
+    });
+  }); //click이벤토 cover
+
+  });  
+
+]]>
+		</script>
+<![CDATA[
+      <form name=frm_exl id="frm_exl" action="" method=post>
+        <input type=hidden name='nowPageNumber' value='${pageAttr.nowPageNumber}$'>
+      </form>
+
+      <!-- Content -->
+      <div class="col-sm-10">
+        <!-- Table Info -->
+        <div class="table-top-info">
+          <div class="left mt10">전체 신청 건수 : ${fmt:숫자:pageAttr.totalItemCount}$ 건</div>
+          <div class="right"><button id="btn_excel_down" class="btn btn-success btn-sm" type="button" ><img src="../images/excel.gif" > 데이터 다운로드</button></div>
+        </div><div class="clear-both"></div>
+        <!-- Table -->
+        <div class="table-responsive">
+          <table class="table table-default">
+            <thead>
+              <tr>
+                <th rowspan="2" width=40>평가신청일</th>
+                <th rowspan="2" width=120>의뢰처</th>
+                <th colspan="3">실사대상기업</th>
+                <th rowspan="2" width=220>실사자 배정</th>
+              </tr>
+              <tr>
+                <th  width=120>기업명</th>
+                <th  width=120>사업자번호</th>
+                <th class="th-rowspan">주소</th>
+              </tr>
+            </thead>
+            <tbody> 
+            
+             ${forEach:inqList}$
+              <tr>
+                <td>${inqList.r_date}$</td>
+                <td>${inqList.clp_nm}$&nbsp;${inqList.req_branch}$</td>
+                <td>${inqList.r_cmp_nm}$</td>
+                <td>${inqList.r_bz_ins_no}$</td>
+                <td>${inqList.inq_addr_major}$</td>
+                <td>
+                  <div class="input-group">
+                    <!--
+                    <input id="ass_${inqList.s_no}$" name="ass_${inqList.s_no}$" value="${inqList.user_nm}$" type="text"  class="form-control" placeholder="Search for...">
+                    -->
+                    
+                    <span class="input-group-btn" >
+                      <button onClick="setv('${inqList.s_no}$', '${inqList.inq_addr_major}$');" class="btn btn-info"type="button" data-toggle="modal" data-target="#modal-assign-list">배정하기</button>
+                    </span>
+                  </div>
+                </td>
+              </tr>
+              ${endfor}$
+              ${if(inqList==0)}$
+                      <tr><td colspan=6> 조회된 결과가 없습니다.</td></tr>
+               ${endif}$
+              
+            </tbody>
+          </table>
+          ${paging_scr}$
+
+        </div>
+        <!--
+        <div class="alert alert-danger">
+          <strong>Warning!</strong> 배정 선택이 완료되지 않았습니다.
+          <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        </div>
+        -->
+      </div><!-- /Content -->
+
+<!-- Modal Assign List-->
+      <div id="modal-assign-list" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <!-- Modal content-->
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+              <h3 class="modal-title" id="modal-assign-list-label">실사자 배정 <span class="assign-address">실사대상기업 주소 : </span><span id="cmp_addr" class="assign-address"></span></h3>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+            <form id="frm_srch" name="frm_srch" method="post">
+            <input type="hidden" name="typ" id="typ">
+            <input type="hidden" name="acc" id="acc" value="admin">
+            	<div class="col-sm-6 pull-right mb5 row">
+						<div class="input-group">
+							<div class="input-group-btn" style="width:130px; padding-right:5px;">
+								<select name="srch_option" id="srch_option" class="form-control">
+									<option value="all">전체</option>
+									<option value="grp_nm">실사업체</option>
+									<option value="user_nm">성명</option>
+									<option value="cell">연락처</option>
+									<option value="email">이메일</option>
+									<option value="addr">주소</option>
+								</select>
+							</div>
+							<input id="srch_opt_txt" name="srch_opt_txt" type="text" class="form-control" placeholder="Search for...">
+		      <input type="text" style="display:none">
+							<span class="input-group-btn">
+								<button id="btn_srch_actual" class="btn btn-info" type="button" >Search</button>
+							</span>
+						</div>
+				</div><div class="clear-both"></div>
+              </form>
+              <!-- /Table -->
+              <div id="default_table">
+              <table class="table table-info">
+                <thead>
+                  <tr>
+                    <th>선택</th>
+                    <th>실사업체</th>
+                    <th>성명</th>
+                    <th>연락처</th>
+                    <th>이메일</th>
+                    <th>주소</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${forEach:memList}$
+                            <tr>
+                      <td><input type="radio" id="assign_rdo" name="assign_rdo" value="${memList.user_id}$|${memList.user_nm}$"></td>
+                      <td>${memList.grp_nm}$</td>
+                      <td>${memList.user_nm}$</td>
+                      <td>${memList.cell}$</td>
+                      <td><a href="mailto:${memList.email}$">${memList.email}$</a></td>
+                      <td>${memList.addr}$</td>
+                    </tr>
+                  ${endfor}$
+                </tbody>
+              </table>
+              </div>
+              <!--
+              <p class="table-alert danger"><span class="glyphicon glyphicon-remove"></span> 배정 선택이 되지 않았습니다.</p>
+              -->
+              
+            </div>
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+              <button type="button" id="go_back" class="btn btn-sm" ><span class="glyphicon glyphicon-ok"></span> 전체보기</button>
+              <button type="button" id="master_list" class="btn btn-sm" ><span class="glyphicon glyphicon-ok"></span> 실사업체보기</button>
+              <button type="button" class="btn btn-warning" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> 취소</button>
+              <button type="button" id="go_assign_mem" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> 배정 선택 완료</button>
+            
+            </div>
+          </div>
+        </div>
+      </div>
+      
+]]>
+	</html>
+
+	<html name="admin_main_excel">
+<![CDATA[
+      <!-- Content -->
+      <div class="col-sm-10">
+        <!-- Table Info -->
+        <div class="table-top-info">
+          <div class="left mt10">전체 신청 건수 :  ${fmt:숫자:pageAttr.totalItemCount}$ 건</div>
+          <div class="right"> 데이터 다운로드 </div>
+        </div><div class="clear-both"></div>
+        <!-- Table -->
+        <div class="table-responsive">
+          <table class="table table-default">
+            <thead>
+              <tr>
+                <th rowspan="2">평가신청일</th>
+                <th rowspan="2">의뢰처</th>
+                <th colspan="3">실사대상기업</th>
+                <th rowspan="2">실사자 배정</th>
+              </tr>
+              <tr>
+                <th>기업명</th>
+                <th>사업자번호</th>
+                <th class="th-rowspan">주소</th>
+              </tr>
+            </thead>
+            <tbody>
+            
+             ${forEach:inqList}$
+              <tr>
+                <td>${inqList.r_date}$</td>
+                <td>${inqList.clp_nm}$&nbsp;${inqList.req_branch}$</td>
+                <td>${inqList.r_cmp_nm}$</td>
+                <td>${inqList.r_bz_ins_no}$</td>
+                <td>${inqList.inq_addr_sub}$</td>
+              </tr>
+              ${endfor}$
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /Content -->
+      
+]]>
+	</html>
+
+	<html name="admin_status">
+		<script>
+<![CDATA[  
+  $( document ).ready( function(){
+
+    //검색조건값을 초기 셋팅합니다. 
+    $('input:radio[name="_srch_options1"]').each(function() {
+        if(this.value=='${pmap._srch_options1}$'){ 
+            this.checked = true; 
+            $(this).parent().addClass('active');
+        }
+    });
+    
+    $('#_srch_op1_date1').val('${pmap._srch_op1_date1}$')
+    $('#_srch_op1_date2').val('${pmap._srch_op1_date2}$')
+
+    $('input:radio[name="_srch_options2"]').each(function() {
+        if(this.value=='${pmap._srch_options2}$'){ 
+            this.checked = true; 
+            $(this).parent().addClass('active');
+        }
+    });
+    $('#_srch_op2_txt').val('${pmap._srch_op2_txt}$')
+
+    $('input:radio[name="_srch_options3"]').each(function() {
+        if(this.value=='${pmap._srch_options3}$'){ 
+            this.checked = true; 
+            $(this).parent().addClass('active');
+        }
+    });
+    //조건검색 초기 셋팅 끝
+
+    //조건 검색
+    $('#btn_srch_info').click(function() {
+      
+      //조건1 validation:  평가신청일자,실사배정일자일 경우 날짜 2개 중에 하나는 있어야 함
+      var o1 = $('input:radio[name="_srch_options1"]:checked').val();
+      if(o1 == 'op1_02'||o1 == 'op1_03'){
+        if($('#_srch_op1_date1').val()=='' && $('#_srch_op1_date2').val()==''){
+          alert('평가신청일자나 실사배정일자를 선택한 경우 검색 날짜를 입력해 주셔야 합니다.');
+          return;
+        }
+      }else{
+        //일자검색이 아닌 경우 날짜 값을 공백으로 바꾸어 준다.
+        $('#_srch_op1_date1').val('');
+        $('#_srch_op1_date2').val('');
+      }
+
+      //조건2 validation
+      var o2 = $('input:radio[name="_srch_options2"]:checked').val();
+      if(o2 != undefined && o2 != 'op2_01'){
+        if($('#_srch_op2_txt').val()=='' ){
+          alert('사업자번호,기업명,은행명,실사자 선택시 해당 검색어를 입력해 주셔야합니다.');
+          return;
+        }
+      }else{
+       $('#_srch_op2_txt').val('');
+      }
+
+      //조건3 validation
+      //조건없음            
+
+
+      $('#frm_srch_info').attr('action','?');
+      $('#frm_srch_info').submit();
+    });
+
+    // 엑셀 다운로드
+    $('#btn_excel_down').click(function() {
+      $('#frm_exl').attr('action','/admin_status_excel.do?_resp=excel');
+      $('#frm_exl').submit();
+    });
+    
+    
+    //배정취소
+    $('#assign_canc').click(function() {
+           var  s_no =$('#m_s_no').val();
+           if(confirm('정말로 취소 하시겠습니까? 취소시 배정정보가 삭제됩니다')){
+           }else{
+             return;
+           }
+
+           var status = $('#m_inq_status'+s_no).val();
+           
+           ${if(pmap.scr_typ==grp_master)}$
+           if(status=='0' || status=='3' || status=='4'){
+           ${else}$
+           if( status=='3' || status=='4'){
+           ${endif}$
+           	 if(status=='0'){
+           	 	alert('귀사에 배정된 실사를 취소할 수 없습니다. 실사자를 배정해주세요.');
+           	 } else{
+             	alert('실사 진행, 완료에서는 배정취소가 되지 않습니다.');
+             }
+             return;
+           }
+
+           $.ajax({
+               cache: false,
+               type: "get",
+               url: "/assign_canc.ado",
+               ${if(pmap.scr_typ==grp_master)}$
+               data: 's_no='+s_no+"&typ=grp_master",
+               ${else}$
+               data: 's_no='+s_no+"&typ=admin",
+               ${endif}$
+               dataType: 'json',
+               success: function(json) {
+                 alert(json.msg);
+                 $('#modal-assigner').modal('hide');
+                 self.location.reload();
+               },
+               error: function(jqXHR, textStatus, errorThrown) {
+                 console.error('ERRORS: ' + textStatus);
+                 alert('ERRORS: ' + textStatus);
+               }
+          });
+    });
+
+  });  
+  
+  //실사자 정보 모달 
+  function mem_info(s_no){
+    var col = new Array("m_user_nm","m_grp_nm","m_user_nm","m_tel","m_cell","m_email","m_addr");
+    for(i=0 ; i<col.length; i++){
+      $('#'+col[i]).html($('#'+col[i]+s_no).val());
+    }
+    $('#m_user_id').val($('#m_user_id'+s_no).val());
+    $('#m_s_no').val($('#m_s_no'+s_no).val());
+  }
+  
+  
+  //완료 보고서 조회 기능
+  function getRptNo(no){
+  	var s_n = $('#m_s_no'+no).val();
+  	var status = $('#m_inq_status'+s_n).val();
+  	var actual_id = $('#m_user_id'+s_n).val();
+  	if (status != '4'){
+    	alert('완료되지 않은 보고서는 조회할 수 없습니다.');
+    } else{
+      var pop_url ="/rpt_view.do?s_no="+s_n +"&typ=inq_rpt";
+    	popup_open_new(pop_url, 'rpt_pop', '900', '800','0');
+    }
+  }
+  
+  //리포트 팝업 생성
+  function popup_open_new( url, name, iwidth, iheight, left, top  ){ 
+     popWindowNew  =  window.open( url,name ,'scrollbars=yes,resizable=yes,width=' + iwidth + ',height=' + iheight+',left='+left+',top='+top);                       
+  }
+  
+]]>
+		</script>
+<![CDATA[
+      <form name=frm_exl id="frm_exl" action="" method=post>
+        <input type=hidden name='nowPageNumber' value='${pageAttr.nowPageNumber}$'>
+      </form>
+<!-- Content -->
+      <div class="col-sm-10">
+
+        <!-- Search Table -->
+        <form id="frm_srch_info" name="frm_srch_info" method="POST">
+
+        <div class="search-table">
+          <!-- Search -->
+          <div class="search-data">
+            <!-- Search 1 -->
+            <div class="search-list">
+              <div class="btn-group btn-group-justified" data-toggle="buttons">
+                <label   class="btn btn-danger" style="width:20%">
+                  <input value="op1_01" type="radio" name="_srch_options1" id="option0" autocomplete="off"> 전체
+                </label>
+                <label   class="btn btn-danger" style="width:20%">
+                  <input value="op1_02" type="radio" name="_srch_options1" id="option1" autocomplete="off"> 평가신청일자
+                </label>
+                <label   class="btn btn-danger" style="width:20%">
+                  <input value="op1_03"  type="radio" name="_srch_options1" id="option2" autocomplete="off"> 실사배정일자
+                </label>
+                <div class="btn btn-danger btn-group-input" style="width:40%">
+                  <div class="search-date-input"><input name="_srch_op1_date1" id="_srch_op1_date1" class="form-control tcb_date input-xs radius-left" type="date"></div>
+                  <div class="pull-left" style="width:10%;">~</div>
+                  <div class="search-date-input"><input name="_srch_op1_date2" id="_srch_op1_date2" class="form-control tcb_date input-xs radius-right" type="date"></div>
+                </div>
+              </div>
+            </div>
+            <!-- Search 2 -->
+            <div class="search-list">
+              <div class="btn-group btn-group-justified" data-toggle="buttons">
+                <label class="btn btn-warning " style="width:12%">
+                  <input value="op2_01"  type="radio" name="_srch_options2" id="option0" autocomplete="off"> 전체
+                </label>
+                <label class="btn btn-warning" style="width:12%">
+                  <input value="op2_02"  type="radio" name="_srch_options2" id="option1" autocomplete="off"> 사업자번호
+                </label>
+                <label class="btn btn-warning" style="width:12%">
+                  <input value="op2_03" type="radio" name="_srch_options2" id="option2" autocomplete="off"> 기업명
+                </label>
+                <label class="btn btn-warning" style="width:12%">
+                  <input value="op2_04" type="radio" name="_srch_options2" id="option3" autocomplete="off"> 의뢰처
+                </label>
+                <label class="btn btn-warning" style="width:12%">
+                  <input value="op2_05" type="radio" name="_srch_options2" id="option3" autocomplete="off"> 실사자
+                </label>
+                <div class="btn btn-warning btn-group-last" style="width:40%">
+                  <input id="_srch_op2_txt" name="_srch_op2_txt" class="form-control input-xs" type="text">
+                </div>
+              </div>
+            </div>
+            <!-- Search 3 -->
+            <div class="search-list">
+              <div class="btn-group btn-group-justified" data-toggle="buttons">
+                <label class="btn btn-primary">
+                  <input value="op3_01"  type="radio" name="_srch_options3" id="option1" autocomplete="off"> 전체
+                </label>
+                <label class="btn btn-primary">
+                  <input value="op3_02" type="radio" name="_srch_options3" id="option1" autocomplete="off"> 미착수
+                </label>
+                <label class="btn btn-primary">
+                  <input value="op3_03" type="radio" name="_srch_options3" id="option2" autocomplete="off"> 실사자 확인
+                </label>
+                <label class="btn btn-primary">
+                  <input value="op3_04" type="radio" name="_srch_options3" id="option3" autocomplete="off"> 진행중
+                </label>
+                <label class="btn btn-primary">
+                  <input value="op3_05" type="radio" name="_srch_options3" id="option3" autocomplete="off"> 완료
+                </label>
+              </div>
+            </div>
+          </div>
+          <!-- Search Button -->
+          <div class="button"><button id="btn_srch_info" type="button" class="btn btn-info btn-block" style="height:112px"><span class="glyphicon glyphicon-search"></span> 검색</button></div>
+          <div class="clear-both"></div>
+        </div><!-- /Search Table -->
+        </form>
+        
+        <!-- Table Info -->
+        <div class="table-top-info">
+          <div class="right"><button id="btn_excel_down" class="btn btn-success btn-sm" type="button" ><img src="../images/excel.gif" > 데이터 다운로드</button></div>
+        </div><div class="clear-both"></div>
+        <!-- Table -->
+        <div class="table-responsive">
+          <table class="table table-default">
+            <thead>
+              <tr>
+                <th>평가신청일</th>
+                <th>실사배정일</th>
+                <th>의뢰처</th>
+                <th>기업명</th>
+                <th>사업자번호</th>
+                <th>실사자</th>
+                <th>실사자 확인</th>
+                <th>실사예정일</th>
+                <th>실사완료일</th>
+                <th width=100>진행상태</th>
+                <th>보고서</th>
+              </tr>
+            </thead>
+            <tbody>
+             ${forEach:allInqList}$
+                      <input type="hidden" id="m_s_no${allInqList.s_no}$" value="${allInqList.s_no}$">
+                      <input type="hidden" id="m_grp_nm${allInqList.s_no}$" value="${allInqList.grp_nm}$">
+                      <input type="hidden" id="m_user_nm${allInqList.s_no}$" value="${allInqList.user_nm}$">
+                      <input type="hidden" id="m_tel${allInqList.s_no}$" value="${allInqList.tel}$">
+                      <input type="hidden" id="m_cell${allInqList.s_no}$" value="${allInqList.cell}$">
+                      <input type="hidden" id="m_email${allInqList.s_no}$" value="${allInqList.email}$">
+                      <input type="hidden" id="m_addr${allInqList.s_no}$" value="${allInqList.addr}$">
+                      <input type="hidden" id="m_user_id${allInqList.s_no}$" value="${allInqList.user_id}$">
+                      <input type="hidden" id="m_inq_status${allInqList.s_no}$" value="${allInqList.inq_status}$">
+              <tr>
+                <td> ${allInqList.r_date}$</td>
+                <td>${allInqList.assign_date}$</td>
+                <td><a href="" data-toggle="modal" data-target="#modal-request">${allInqList.clp_nm}$&nbsp;${allInqList.req_branch}$</a></td>
+                <td>${allInqList.r_cmp_nm}$</td>
+                <td>${allInqList.r_bz_ins_no}$</td>
+                <!--실사자 정보 보여 주고 실사자 취소 기능 넣기-->
+                <td><a href="#." onClick="mem_info('${allInqList.s_no}$');" data-toggle="modal" data-target="#modal-assigner">${allInqList.user_nm}$</a></td>
+                
+                <td>${allInqList.inq_chk_date}$</td>
+                <td>${allInqList.inq_due_date}$</td>
+                <td>${allInqList.inq_act_date}$</td>
+                <td><a href="" class="${allInqList.inq_status_font}$" data-toggle="modal" data-target="#modal-progress">${allInqList.inq_status_nm}$</a></td>
+                <td><button type="button" onClick="getRptNo('${allInqList.s_no}$');" class="btn btn-info btn-sm"><span class="glyphicon glyphicon-search"></span> 조회</button></td>
+              </tr>
+              ${endfor}$
+              ${if(allInqList==0)}$
+              <tr><td colspan=11> 조회된 결과가 없습니다.</td></tr>
+              ${endif}$
+            </tbody>
+          </table>
+             ${paging_scr}$
+
+      <!-- Modal Assigner -->
+      <div id="modal-assigner" class="modal fade" role="dialog" >
+        <div class="modal-dialog modal-lg">
+          <!-- Modal content-->
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+              <h3 class="modal-title" id="modal-new-register-label">실사자 정보</h3>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+              <!-- Table -->
+              <div class="table-responsive">
+                <table class="table table-info">
+                  <thead>
+                    <tr>
+                      <th>실사업체</th>
+                      <th>성명</th>
+                      <th>유선전화</th>
+                      <th>휴대폰</th>
+                      <th>이메일</th>
+                      <th>주소</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td id="m_grp_nm"></td>
+                      <td id="m_user_nm"></td>
+                      <td id="m_tel"></td>
+                      <td id="m_cell"></td>
+                      <td id="m_email"></td>
+                      <td id="m_addr"></td>
+                  </tbody>
+                  <input type="hidden" id="m_s_no" value="">
+                  <input type="hidden" id="m_user_id" value="">
+                </table>
+              </div><!-- /Table -->
+            </div>
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" data-dismiss="modal"><span class="glyphicon glyphicon-ok"></span> 확인</button>
+              <button type="button" id="assign_canc"  class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span> 배정 취소</button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /Modal Assigner -->
+
+
+
+        </div><!-- /Table -->
+      </div><!-- /Content -->
+      
+      
+      
+]]>
+	</html>
+
+	<html name="admin_status_excel">
+<![CDATA[
+<div class="table-top-info">
+          <div class="right"><button class="btn btn-success btn-sm" type="button" > 데이터 다운로드</button></div>
+        </div><div class="clear-both"></div>
+        <!-- Table -->
+        <div class="table-responsive">
+          <table class="table table-default">
+            <thead>
+              <tr>
+                <th>평가신청일</th>
+                <th>실사배정일</th>
+                <th>의뢰처</th>
+                <th>기업명</th>
+                <th>사업자번호</th>
+                <th>실사자</th>
+                <th>실사자 확인</th>
+                <th>실사예정일</th>
+                <th>실사완료일</th>
+                <th>진행상태</th>
+                <th>보고서</th>
+              </tr>
+            </thead>
+            <tbody>
+             ${forEach:allInqList}$
+              <tr>
+                <td> ${allInqList.r_date}$</td>
+                <td>${allInqList.assign_date}$</td>
+                <td>${allInqList.clpnm}$ ${allInqList.req_branch}$</td>
+                <td>${allInqList.r_cmp_nm}$</td>
+                <td>${allInqList.r_bz_ins_no}$</td>
+                <td>${allInqList.user_nm}$</td>
+                <td>${allInqList.inq_chk_date}$</td>
+                <td>${allInqList.inq_due_date}$</td>
+                <td>${allInqList.inq_act_date}$</td>
+                <td>${allInqList.inq_status_nm}$</td>
+              </tr>
+              ${endfor}$
+              
+            </tbody>
+          </table>
+
+        </div><!-- /Table -->
+
+
+]]>
+	</html>
+
+
+	<html name="admin_mem_reg">
+		<script>
+<![CDATA[
+//정보수정과 신규등록 모달 구분
+var btnT='';
+  $(document).ready(function(){
+  
+    //신규등록 & 정보수정 모달의 등록완료 버튼 클릭시, 
+    $('#btnNewReg').on('click', function(){
+      ${if(scr_typ==grp_master)}$
+        $('input[name="scr_typ"]').attr('value','grp_master');
+      ${else}$
+        $('input[name="scr_typ"]').attr('value','');
+      ${endif}$
+        
+      $('input[name="btn_type"]').attr('value', btnT);    
+      var pw = $('#user_pw').val(); var pwChk = $('#user_pwChk').val();
+      if (pw != pwChk){
+        alert('비밀번호가 일치하지 않습니다.');
+      }else{
+        
+        $.ajax({
+             type: "POST",
+             url: "/admin_mem_reg_act.ado",
+              data: $('#frm_mem_reg').serialize() ,
+             dataType: 'json',
+             success: function(json) {
+               alert(json.msg);
+               $('#user_id').val(""); $('#user_nm').val(""); $('#user_pw').val(""); $('#user_pwChk').val("");
+                 $('#tel').val(""); $('#cell').val(""); $('#email').val(""); $('#addr').val("");
+                 self.location.reload();
+             },
+             error: function(jqXHR, textStatus, errorThrown) {
+               console.error('ERRORS: ' + textStatus);
+               alert('ERRORS: ' + textStatus);
+             }
+        });
+      }
+    });
+    
+    //신규등록 버튼
+    $('#btnNewReg_').on('click', function(){
+      $('#modal-new-register-label').text('실사자 신규등록');
+    });
+  
+    //정보수정 버튼
+    $('#btnInfoMod').on('click', function(){
+      $('input[name="btn_type"]').attr('value', btnT);    
+      var user_id = '';
+      var checkedSize = $('input[name=in_chkbox]:checked').size();
+      if (checkedSize < 1){
+        alert('수정할 실사자를 선택해주세요.');
+        return;
+      } else if (checkedSize > 1){
+        alert('한명만 선택해주세요.');
+        return;
+      } else{
+        $("input[name='in_chkbox']").each(
+          function(){
+            if (this.checked){
+              user_id = this.value;
+            } 
+          }
+        );
+        $('#modal-new-register').modal('show');
+        $('#modal-new-register-label').text('실사자 정보수정');
+      }
+        $('#grp_nm').text( $('#m_grp_nm' + user_id).val() );
+         $('#user_id').val(user_id); $('#user_id').prop("readonly", true);  $('#user_nm').val($('#m_user_nm' + user_id).val()); 
+         $('#user_pw').prop("readonly", true); $('#user_pwChk').prop("readonly", true);
+         $('#tel').val($('#m_tel' + user_id).val()); $('#cell').val($('#m_cell' + user_id).val()); 
+         $('#email').val($('#m_email' + user_id).val()); $('#addr').val($('#m_addr' + user_id).val());
+         
+      
+    });
+    $('#btn_cancel').on('click', function(){
+       $('#user_id').prop("readonly", false); $('#user_pw').prop("readonly", false); $('#user_pwChk').prop("readonly", false);
+       $('#user_id').val(""); $('#user_nm').val(""); $('#user_pw').val(""); $('#user_pwChk').val("");
+       $('#tel').val(""); $('#cell').val(""); $('#email').val(""); $('#addr').val("");
+    });
+    
+    //실사자 삭제
+    $('#btn_del').on('click', function(){
+      var checkedId = $('input[name=in_chkbox]:checked').map(function(){
+      return $(this).val();
+      }).get();
+      if (checkedId == ''){
+        alert('삭제할 실사자를 선택해주세요');
+      } else {
+        
+        if(confirm('정말로 삭제 하시겠습니까? 삭제시 해당 실사자정보는 삭제됩니다')){
+           }else{ return; }
+           
+            $.ajax({
+             type: "POST",
+             url: "/admin_mem_del_act.ado",
+               data: {checkedId : JSON.stringify(checkedId)},
+             dataType: 'json',
+             success: function(json) {
+               alert(json.msg);
+                 self.location.reload();
+             },
+             error: function(jqXHR, textStatus, errorThrown) {
+               console.error('ERRORS: ' + textStatus);
+               alert('ERRORS: ' + textStatus);
+             }
+        });
+      }
+      
+    });
+    
+  });
+]]>
+		</script>
+<![CDATA[
+  <!-- Content -->
+      <div class="col-sm-10">
+        <!-- Table -->
+        <div class="table-responsive">
+          <table class="table table-default">
+            <thead>
+              <tr>
+                <th></th>
+                <th>실사업체</th>
+                <th>성명</th>
+                <th>유선전화</th>
+                <th>휴대폰</th>
+                <th>주소</th>
+                <th>이메일</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${forEach:memList}$
+                      <input type="hidden" id="m_user_nm${memList.user_id}$" value="${memList.user_nm}$">
+                      <input type="hidden" id="m_grp_nm${memList.user_id}$" value="${memList.grp_nm}$">
+                      <input type="hidden" id="m_tel${memList.user_id}$" value="${memList.tel}$">
+                      <input type="hidden" id="m_cell${memList.user_id}$" value="${memList.cell}$">
+                      <input type="hidden" id="m_email${memList.user_id}$" value="${memList.email}$">
+                      <input type="hidden" id="m_addr${memList.user_id}$" value="${memList.addr}$">
+              
+              <tr>
+                <td><input name="in_chkbox" type="checkbox" value="${memList.user_id}$"></td>
+                <td>${memList.grp_nm}$</td>
+                <td>${memList.user_nm}$</td>
+                <td>${memList.tel}$</td>
+                <td>${memList.cell}$</td>
+                <td style="text-align:left">${memList.addr}$</td>
+                <td style="text-align:left"><a href="mailto:${memList.email}$">${memList.email}$</a></td>
+              </tr>
+               ${endfor}$
+
+              ${if(memList==0)}$
+              <tr><td colspan=7> 조회된 결과가 없습니다.</td></tr>
+              ${endif}$
+               
+            </tbody>
+          </table>
+        </div><!-- /Table -->
+        
+        <!-- Button -->
+        <div class="textC mt20">
+          <!---
+          <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#modal-company-register"><span class="glyphicon glyphicon-home"></span> 외주업체등록</button>
+          -->
+          
+          <button class="btn btn-info" onClick="btnT='a';" type="button" id="btnNewReg_" data-toggle="modal" data-target="#modal-new-register"><span class="glyphicon glyphicon-user"></span> 신규등록</button>
+          <button class="btn btn-warning" onClick="btnT='b';" type="button" id="btnInfoMod"  data-toggle="modal"><span class="glyphicon glyphicon-wrench"></span> 정보수정</button>
+          <button class="btn btn-danger" type="button" id="btn_del" ><span class="glyphicon glyphicon-trash"></span> 삭제</button>
+        </div>        
+      </div><!-- /Content -->
+  <!-- Modal Company -->
+      <div id="modal-company-register" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-sm">
+          <!-- Modal content-->
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+              <h4 class="modal-title">외주업체 등록</h4>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+              <div class="modal-company-title">회사명</div>
+              <div class="form-group mb0">
+                <select class="form-control">
+                  <option>나이스디앤비</option>
+                </select>
+              </div>
+            </div><!-- /Modal Body -->
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+              <button type="button" class="btn btn-warning" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> 취소</button>
+              <button type="button" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> 등록하기</button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /Modal Company -->
+      
+      <!-- Modal New Register -->
+      <div id="modal-new-register" class="modal fade" role="dialog" >
+        <div class="modal-dialog modal-lg">
+          <!-- Modal content-->
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+              <h3 class="modal-title" id="modal-new-register-label"> 실사자 신규등록 </h3>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+              <!-- Table -->
+              <form name="frm_mem_reg" id="frm_mem_reg" method=post>
+              <input type="hidden" name="btn_type" id="btn_type">
+              <input type="hidden" name="scr_typ" id="scr_typ">
+              
+              <div class="table-responsive">
+                <table class="table table-info">
+                  <colgroup>
+                    <col width="">
+                    <col width="40%">
+                    <col width="">
+                    <col width="40%">
+                  </colgroup>
+                  <tbody>
+                    <tr>
+                      <th>실사업체</th>
+                      <td id="grp_nm">${grp_nm}$</td>
+                      <th>권한</th>
+                      <td>
+                        실사자
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>ID</th>
+                      <td><input name="user_id" id="user_id" class="form-control input-sm" type="text"></td>
+                      <th>이름</th>
+                      <td><input name="user_nm" id="user_nm" class="form-control input-sm" type="text"></td>
+                    </tr>
+                    <tr>
+                      <th>비밀번호</th>
+                      <td><input name="user_pw" id="user_pw" class="form-control input-sm" type="password"></td>
+                      <th>비밀번호<br>확인</th>
+                      <td><input id="user_pwChk" class="form-control input-sm" type="password"></td>
+                    </tr>
+                    <tr>
+                      <th>전화번호</th>
+                      <td><input name="tel" id="tel" class="form-control input-sm" type="tel"></td>
+                      <th>휴대폰</th>
+                      <td><input name="cell" id="cell" class="form-control input-sm" type="tel"></td>
+                    </tr>
+                    <tr>
+                      <th>이메일</th>
+                      <td><input name="email" id="email" class="form-control input-sm" type="email"></td>
+                      <th>주소</th>
+                      <td colspan="2">
+                        <input name="addr" id="addr" type="text" class="form-control">
+                        <!--
+                        <div class="input-group">
+                          <input name="addr" id="addr" type="text" class="form-control" placeholder="Search for...">
+                          <span class="input-group-btn">
+                            <button class="btn btn-info" type="button" data-toggle="modal" data-target="#modal-assign-list">선택</button>
+                          </span>
+                        </div>
+                        -->
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div><!-- /Table --> </form>
+            </div>
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+              <button type="button" id="btn_cancel" class="btn btn-warning" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> 취소</button>
+              <button type="button" id="btnNewReg" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> 등록 완료</button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /Modal New Register -->
+]]>
+	</html>
+
+
+
+
+	<!-- 그룹 마스터계정 -->
+	<html name="grp_master_main">
+		<script>
+<![CDATA[  
+  var now_s_no ='';  //배정하기 모달을 띄웠을때 선택되어진 S_NO를 저장하기 위함
+  function setv(s_no, addr){
+ 	now_s_no= s_no; 
+ 	$('#cmp_addr').text(addr); //모달의 상세정보 창
+ 	$('#typ').val('default');
+ 	srch();
+ } 
+  
+  //실사자 검색함수
+ function srch(){
+ 	//조건에 따라 검색한 실사자 테이블.
+       var html ='<table class="table table-info">';
+				html += '<thead>';
+				html += '<tr>';
+				html += '	<th>선택</th>';
+				html += '	<th>성명</th>';
+				html += '	<th>연락처</th>';
+				html += '	<th>이메일</th>';
+				html += '	<th>주소</th>';
+				html += '</tr>';
+				html += '</thead>';
+				html += '<tbody>';      
+    	 $.ajax({
+             type: "POST",
+              url: "/srch_actual.ado",
+              data: $('#frm_srch').serialize(),
+             dataType: 'json',
+             success: function(json) {
+               	$.each(json.list, function(key, value){
+               		html += '	<tr>';
+					html += '		<td><input type="radio" id="assign_rdo" name="assign_rdo" value="' + value.user_id + '|'+value.user_nm+'"></td>';
+					html += '		<td>'+value.user_nm+'</td>';
+					html += '		<td>'+value.cell+'</td>';
+					html += '		<td><a href="mailto:'+value.email+'">'+value.email+'</a></td>';
+					html += '		<td>'+value.addr+'</td>';
+					html += '	</tr>';
+               	});
+               	html += '</tbody>';
+				html += '</table>';
+				
+				$('#default_table').html(html);
+				$('#srch_opt_txt').val('');
+				$('#typ').val('default');
+             },
+             error: function(jqXHR, textStatus, errorThrown) {
+               console.error('ERRORS: ' + textStatus);
+               alert('ERRORS: ' + textStatus);
+             }
+        });
+     	
+ 
+ }
+  
+  $( document ).ready( function(){
+    // 엑셀 다운로드
+    $('#btn_excel_down').click(function() {
+      $('#frm_exl').attr('action','/grp_master_main_excel.do?_resp=excel');
+      $('#frm_exl').submit();
+    });
+    
+    //조건 검색
+    $('#btn_srch_actual').click(function() {
+    	$('#typ').val('');
+    	srch();
+
+    });
+    
+	     //담당자 지정 하기
+	  $('#go_assign_mem').on('click', function(){
+	     var ass_info = $('input:radio[name="assign_rdo"]:checked').val();
+	     //split로 Userid,와 user_nm 나누기 자바스크립트 찾아볼것 
+	     var dataArr = ass_info.split('|');
+	     $.ajax({
+	         cache: false,
+	         type: "get",
+	         url: "/grp_mem_assign_act.ado",
+	         data: 'user_id='+dataArr[0]+'&s_no='+now_s_no,
+	         dataType: 'json',
+	         success: function(json) {
+	           alert(json.msg);
+	           //선택되어진 inputbox에 배정자 명 SET하기
+	           $('#ass_'+now_s_no).val(dataArr[1]);
+	           $('#modal-assign-list').modal('hide');
+	           self.location.reload();
+	         },
+	         error: function(jqXHR, textStatus, errorThrown) {
+	           console.error('ERRORS: ' + textStatus);
+	           alert('ERRORS: ' + textStatus);
+	         }
+	    });
+	  });
+  });
+ ]]>
+		</script>
+<![CDATA[
+<form name=frm_exl id="frm_exl" action="" method=post>
+        <input type=hidden name='nowPageNumber' value='${pageAttr.nowPageNumber}$'>
+  </form>
+      <div class="col-sm-10">
+        <!-- Table Info -->
+        <div class="table-top-info">
+          <div class="left mt10">실사 의뢰 건수 :  ${fmt:숫자:pageAttr.totalItemCount}$건</div>
+          <div class="right"><button id="btn_excel_down" class="btn btn-success btn-sm" type="button" ><img src="../images/excel.gif" > 데이터 다운로드</button></div>
+        </div><div class="clear-both"></div>
+        <!-- Table -->
+        <div class="table-responsive">
+          <table class="table table-default">
+            <thead>
+              <tr>
+                <th rowspan="2">평가신청일</th>
+                <th rowspan="2">의뢰처</th>
+                <th colspan="3">실사대상기업</th>
+                <th rowspan="2" style="min-width:200px; width:25%;">실사자 배정</th>
+              </tr>
+              <tr>
+                <th>기업명</th>
+                <th>사업자번호</th>
+                <th class="th-rowspan">주소</th>
+              </tr>
+            </thead>
+            <tbody>
+                      
+                       ${forEach:msInqList}$
+              <tr>
+                <td>${msInqList.r_date}$</td>
+                <td>${msInqList.clp_nm}$&nbsp;${msInqList.req_branch}$</td>
+                <td>${msInqList.r_cmp_nm}$</td>
+                <td>${msInqList.r_bz_ins_no}$</td>
+                <td>${msInqList.inq_addr_major}$</td>
+                <td>
+                  <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search for...">
+                    <span class="input-group-btn">
+                      <button onClick="setv('${msInqList.s_no}$', '${msInqList.inq_addr_major}$');" class="btn btn-info" type="button" data-toggle="modal" data-target="#modal-assign-list">배정하기</button>
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            ${endfor}$
+              ${if(msInqList==0)}$
+              <tr><td colspan=6> 조회된 결과가 없습니다.</td></tr>
+              ${endif}$
+              
+            </tbody>
+          </table>
+        </div><!-- /Table -->
+      
+        ${paging_scr}$
+      
+        <!-- <div class="alert alert-danger">
+          <strong>Warning!</strong> 배정 선택이 완료되지 않았습니다.
+          <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        </div> -->
+      </div><!-- /Content -->
+      
+      
+      
+       <!-- Modal Assign List-->
+      <div id="modal-assign-list" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <!-- Modal content-->
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+              <h3 class="modal-title" id="modal-assign-list-label">실사자 배정 <span class="assign-address">실사대상기업 주소 : </span><span id="cmp_addr" class="assign-address"></span></h3>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+            <form id="frm_srch" name="frm_srch" method="post">
+            <input type="hidden" name="typ" id="typ">
+            <input type="hidden" name="acc" id="acc" value="master">
+            	<div class="col-sm-6 pull-right mb5 row">
+						<div class="input-group">
+							<div class="input-group-btn" style="width:130px; padding-right:5px;">
+								<select name="srch_option" id="srch_option" class="form-control">
+									<option value="">전체</option>
+									<option value="user_nm">성명</option>
+									<option value="cell">연락처</option>
+									<option value="email">이메일</option>
+									<option value="addr">주소</option>
+								</select>
+							</div>
+							<input id="srch_opt_txt" name="srch_opt_txt" type="text" class="form-control" placeholder="Search for...">
+							<span class="input-group-btn">
+								<button id="btn_srch_actual" class="btn btn-info" type="button" >Search</button>
+							</span>
+						</div>
+				</div><div class="clear-both"></div>
+              </form>
+              <!-- /Table -->
+              <div id="default_table">
+              <table class="table table-info">
+                <thead>
+                  <tr>
+                    <th>선택</th>
+                    <th>성명</th>
+                    <th>연락처</th>
+                    <th>이메일</th>
+                    <th>주소</th>
+                  </tr>
+                </thead>
+                <tbody>
+                ${forEach:memList}$
+                  <tr>
+                    <td><input type="radio"id="assign_rdo" name="assign_rdo" value="${memList.user_id}$|${memList.user_nm}$"></td>
+                    <td>${memList.user_nm}$</td>
+                    <td>${memList.cell}$</td>
+                    <td><a href="mailto:${memList.email}$">${memList.email}$</a></td>
+                    <td>${memList.addr}$</td>
+                  </tr>
+                ${endfor}$
+                </tbody>
+              </table>
+            <!--  <p class="table-alert danger"><span class="glyphicon glyphicon-remove"></span> 배정 선택이 되지 않았습니다.</p> -->
+            </div>
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+              <button type="button" class="btn btn-warning" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> 취소</button>
+              <button type="button" id="go_assign_mem" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> 배정 선택 완료</button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /Modal Assign List -->
+]]>
+	</html>
+
+	<html name="grp_master_main_excel">
+<![CDATA[
+<div class="col-sm-10">
+      <!-- Table Info -->
+      <div class="table-top-info">
+          <div class="left mt10">실사 의뢰 건수 :  ${fmt:숫자:pageAttr.totalItemCount}$건</div>
+          <div class="right"><button id="btn_excel_down" class="btn btn-success btn-sm" type="button" > 데이터 다운로드</button></div>
+        </div><div class="clear-both"></div>
+        <!-- Table -->
+        <div class="table-responsive">
+          <table class="table table-default">
+            <thead>
+              <tr>
+                <th rowspan="2">평가신청일</th>
+                <th rowspan="2">의뢰처</th>
+                <th colspan="3">실사대상기업</th>
+                <th rowspan="2" style="min-width:200px; width:25%;">실사자 배정</th>
+              </tr>
+              <tr>
+                <th>기업명</th>
+                <th>사업자번호</th>
+                <th class="th-rowspan">주소</th>
+              </tr>
+            </thead>
+            <tbody>
+                      
+                       ${forEach:msInqList}$
+              <tr>
+                <td>${msInqList.r_date}$</td>
+                <td>${msInqList.clp_nm}$&nbsp;${msInqList.req_branch}$</td>
+                <td>${msInqList.r_cmp_nm}$</td>
+                <td>${msInqList.r_bz_ins_no}$</td>
+                <td>${msInqList.inq_addr_sub}$</td>
+                <td>
+                  <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search for...">
+                    <span class="input-group-btn">
+                      <button class="btn btn-info" type="button" data-toggle="modal" data-target="#modal-assign-list">배정하기</button>
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            ${endfor}$
+            </tbody>
+          </table>
+      </div><!-- /Table -->
+  ]]>
+	</html>
+
+	<html name="grp_master_status">
+		${import:tcsv@admin_status}$
+	</html>
+
+
+
+	<html name="grp_mem_reg">
+		${import:tcsv@admin_mem_reg}$
+	</html>
+
+	<!-- 실사자 계정 -->
+
+	<html name="actual_main" >
+		<script><![CDATA[
+var  now_s_no ='';  <!-- 실사자 배정 확인을 위한 것 -->
+  function setv(s_no){now_s_no= s_no; btn_act_chk();}
+
+
+  function btn_act_chk(){
+    var inqDate = $('#inqExpDate_'+now_s_no).val() + ":00";
+  
+    if (inqDate == '' || inqDate.length != 19){
+      alert('실사예정일을 정확히 입력하세요');
+    } else{
+       $.ajax({
+           cache: false,
+           type: "get",
+           url: "/act_chk_proc.ado",
+           data: 'inq_due_date='+ inqDate +'&s_no='+now_s_no,
+           dataType: 'json',
+           success: function(json) {
+             alert(json.msg);
+             self.location.reload();
+             },
+           error: function(jqXHR, textStatus, errorThrown) {
+             console.error('ERRORS: ' + textStatus);
+             alert('ERRORS: ' + textStatus);
+           }
+      });
+    }
+  }
+    
+$( document ).ready( function(){
+    // 엑셀 다운로드
+    $('#btn_excel_down').click(function() {
+      $('#frm_exl').attr('action','/actual_main_excel.do?_resp=excel');
+      $('#frm_exl').submit();
+    });
+    
+    $('input:text[name="inqExpDate"]').each(function(){
+		  $(this).appendDtpicker({
+			"autodateOnStart": false
+		  });
+	  });
+    
+  }); 
+
+ ]]>
+		</script>
+<![CDATA[
+<form name=frm_exl id="frm_exl" action="" method=post>
+        <input type=hidden name='nowPageNumber' value='${pageAttr.nowPageNumber}$'>
+  </form>
+<!-- Content -->
+      <div class="col-sm-10">
+        <div class="table-responsive">
+          <div class="table-top-info">
+            <div class="left mt10">실사 건수 : ${fmt:숫자:pageAttr.totalItemCount}$ 건</div>
+            <div class="right"><button class="btn btn-success btn-sm" type="button" > 확약서 다운로드</button> <button id="btn_excel_down" class="btn btn-success btn-sm" type="button" ><img src="../images/excel.gif" > 데이터 다운로드</button></div>
+          </div>
+          <table class="table table-default">
+            <thead>
+              <tr>
+                <th>실사배정일</th>
+                <th>평가자</th>
+                <th>기업명</th>
+                <th>사업자번호</th>
+                <th style="min-width:40px; width:20%;">실사예정일</th>
+                <th>실사등록</th>
+              </tr>
+            </thead>
+            <tbody>
+                      ${forEach:myInqList}$
+              <tr>
+                <td>${myInqList.assign_date}$</td>
+                <td><a href="" data-toggle="modal" data-target="#modal-assigner">${myInqList.name}$</a></td>
+                <td>${myInqList.r_cmp_nm}$</td>
+                <td>${myInqList.r_bz_ins_no}$</td>
+                <td><input type="text" name="inqExpDate" id="inqExpDate_${myInqList.s_no}$" maxlength="8" class="form-control"></td>
+                <td><button onClick="setv('${myInqList.s_no}$');" class="btn btn-info" type="button" data-toggle="modal" data-target="#modal-indemnity-report">확인</button></td>
+              </tr>
+              ${endfor}$
+              ${if(myInqList==0)}$
+                      <tr><td colspan=6> 조회된 결과가 없습니다.</td></tr>
+               ${endif}$
+            </tbody>
+          </table>
+            ${paging_scr}$
+        </div>
+        <!-- <div class="alert alert-danger">
+          <strong>Warning!</strong> 배정 선택이 완료되지 않았습니다.
+          <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        </div> -->
+      </div><!-- /Content -->
+]]>
+	</html>
+
+	<html name="actual_main_excel">
+<![CDATA[
+<!-- Content -->
+      <div class="col-sm-10">
+        <div class="table-responsive">
+          <div class="table-top-info">
+            <div class="left mt10">실사 건수 : ${fmt:숫자:pageAttr.totalItemCount}$ 건</div>
+            <div class="right"><button class="btn btn-success btn-sm" type="button" > 데이터 다운로드</button></div>
+          </div>
+          <table class="table table-default">
+            <thead>
+              <tr>
+                <th>실사배정일</th>
+                <th>평가자</th>
+                <th>기업명</th>
+                <th>사업자번호</th>
+                <th style="min-width:130px; width:20%;">실사예정일</th>
+              </tr>
+            </thead>
+            <tbody>
+                      ${forEach:myInqList}$
+              <tr>
+                <td>${myInqList.assign_date}$</td>
+                <td><a href="" data-toggle="modal" data-target="#modal-assigner">${myName}$</a></td>
+                <td><a href="">${myInqList.r_cmp_nm}$</a></td>
+                <td>${myInqList.r_bz_ins_no}$</td>
+                <td><input type="date" value="${myInqList.inq_due_date}$"class="form-control"></td>
+              </tr>
+              ${endfor}$
+              
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /Content -->
+]]>
+	</html>
+
+	<html name="actual_report">
+		<script>
+<![CDATA[
+var now_s_no = "";
+function setv(s_no){ now_s_no = s_no; actDateSet();}
+
+//실사예정일 변경 
+function setDue(s_no){ now_s_no = s_no; actDueSet();}
+
+function actDueSet(){
+      var dueDate = $('#dueDate_'+now_s_no).val() + ":00";
+  
+      if(dueDate == "" || dueDate.length != 19){
+        alert('실사예정일을 정확히 입력하세요.');
+      }else{
+        $.ajax({
+               cache: false,
+             type: "get",
+             url: "/due_dateset_proc.ado",
+             data: 'inq_due_date='+ dueDate +'&s_no='+now_s_no,
+             dataType: 'json',
+             success: function(json) {
+              alert(json.msg);
+              self.location.reload();
+             },
+             error: function(jqXHR, textStatus, errorThrown) {
+                 console.error('ERRORS: ' + textStatus);
+                 alert('ERRORS: ' + textStatus);
+              }
+          });
+      }
+
+}
+
+function actDateSet(){
+      var actDate = $('#actDate_'+now_s_no).val() + ":00";
+      
+      if(actDate == "" || actDate.length != 19){
+        alert('실사일을 정확히 입력하세요.');
+      }else{
+        $.ajax({
+               cache: false,
+             type: "get",
+             url: "/act_dateset_proc.ado",
+             data: 'inq_act_date='+ actDate +'&s_no='+now_s_no,
+             dataType: 'json',
+             success: function(json) {
+              alert(json.msg);
+              self.location.reload();
+             },
+             error: function(jqXHR, textStatus, errorThrown) {
+                 console.error('ERRORS: ' + textStatus);
+                 alert('ERRORS: ' + textStatus);
+              }
+          });
+      }
+
+}
+  //보고서 작성시 클릭 이벤트 처리
+  function go_rpt(s_no){
+    //실사일 값이 없으면 alert 처리
+    if($('#actDate_'+s_no).val()==''){
+      alert('실사일을 먼저 입력해 주세요');
+      return;
+    }
+    self.location.href="/go_report.do?s_no="+s_no;
+    
+    
+  }
+
+  $(document).ready(function(){
+      //검색조건값을 초기 셋팅합니다. 
+      $('input:radio[name="_srch_options1"]').each(function() {
+          if(this.value=='${pmap._srch_options1}$'){ 
+              this.checked = true; 
+              $(this).parent().addClass('active');
+          }
+      });
+       $('#_srch_op1_txt').val('${pmap._srch_op1_txt}$')
+       
+       $('input:radio[name="_srch_options2"]').each(function() {
+          if(this.value=='${pmap._srch_options2}$'){ 
+              this.checked = true; 
+              $(this).parent().addClass('active');
+          }
+      });
+      
+       //조건 검색
+      $('#btn_srch_info').click(function() {
+        var o1 = $('input:radio[name="_srch_options1"]:checked').val();
+          if(o1 != undefined && o1 != 'op1_01'){
+             if($('#_srch_op1_txt').val()=='' ){
+            alert('사업자번호나 기업명을 선택한 경우 해당 검색어를 입력해 주셔야 합니다.');
+            return;
+             }
+             
+         } else {
+          $('#_srch_op1_txt').val('');
+         }
+      
+        $('#frm_srch_info').attr('action','?');
+          $('#frm_srch_info').submit();
+      });
+      
+      
+      $('input:text[name="dueDate"]').each(function(){
+		  $(this).appendDtpicker({
+			"autodateOnStart": false
+		  });
+	  });
+	  
+	   $('input:text[name="actDate"]').each(function(){
+		  $(this).appendDtpicker({
+			"autodateOnStart": false
+		  });
+	  });
+
+  });
+]]>
+		</script>
+<![CDATA[
+<!-- Content -->
+      <div class="col-sm-10">
+        <!-- Search -->
+        <form id="frm_srch_info" name="frm_srch_info" method="POST">
+        <div class="search-table">
+          <div class="search-data">
+            <!-- Search 1 -->
+            <div class="search-list">
+              <div class="btn-group btn-group-justified" data-toggle="buttons">
+                <label class="btn btn-warning">
+                  <input value="op1_01" type="radio" name="_srch_options1" id="option0" autocomplete="off" checked> 전체
+                </label>
+                <label class="btn btn-warning">
+                  <input value="op1_02" type="radio" name="_srch_options1" id="option1" autocomplete="off"> 사업자번호
+                </label>
+                <label class="btn btn-warning">
+                  <input value="op1_03" type="radio" name="_srch_options1" id="option2" autocomplete="off"> 기업명
+                </label>
+                <div class="btn btn-warning btn-group-last">
+                  <input id="_srch_op1_txt" name="_srch_op1_txt" class="form-control input-xs" type="text">
+                </div>
+              </div>
+            </div>
+            <!-- Search 2 -->
+            <div class="search-list">
+              <div class="btn-group btn-group-justified" data-toggle="buttons">
+                <label class="btn btn-primary" >
+                  <input value="op2_01" type="radio" name="_srch_options2" id="option1" autocomplete="off" checked> 전체
+                </label>
+                <label class="btn btn-primary" >
+                  <input value="op2_02" type="radio" name="_srch_options2" id="option2" autocomplete="off"> 실사자확인
+                </label>
+                <label class="btn btn-primary"">
+                  <input value="op2_03" type="radio" name="_srch_options2" id="option3" autocomplete="off"> 진행중
+                </label>
+                <label class="btn btn-primary">
+                  <input value="op2_04" type="radio" name="_srch_options2" id="option3" autocomplete="off"> 완료
+                </label>
+              </div>
+            </div>
+          </div>
+          <!-- Search Button -->
+          <div class="button"><button type="button" id="btn_srch_info" class="btn btn-info btn-block" style="height:73px"><span class="glyphicon glyphicon-search"></span> 검색</button></div>
+        </div>
+        
+        <!-- Table -->
+        </form>
+        
+        <div class="table-responsive">
+          <table class="table table-default">
+            <thead>
+              <tr>
+                <th>실사배정일</th>
+                <th>실사예정일</th>
+                <th>기업명</th>
+                <th>사업자번호</th>
+                <th style="min-width:170px; width:25%;">실사일</th>
+                <th width="130">보고서 작성</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+              ${forEach:myInqList}$
+              <tr>
+                <td>${myInqList.assign_date}$</td>
+                <td>
+	                <div class="input-group">
+                     <input type="text" id="dueDate_${myInqList.s_no}$" name="dueDate"  class="form-control" value="${myInqList.inq_due_date}$">
+                    <span class="input-group-btn">
+                      <button id="btnDueSet" onClick="setDue(${myInqList.s_no}$)" class="btn btn-default" type="button">수정</button>
+                    </span>
+	                
+                  </div>
+	                
+                </td>
+                <td>${myInqList.r_cmp_nm}$</td>
+                <td>${myInqList.r_bz_ins_no}$</td>
+                <td>
+                  <div class="input-group">
+                    <input type="text" id="actDate_${myInqList.s_no}$" name="actDate" class="form-control" value="${myInqList.inq_act_date}$">
+                    <span class="input-group-btn">
+                      <button id="btnActDateSet" onClick="setv(${myInqList.s_no}$);" class="btn btn-default" type="button">등록</button>
+                    </span>
+                  </div>
+                </td>
+                <td><button onClick="go_rpt('${myInqList.s_no}$');" type="button" class="btn ${myInqList.inq_status_font}$ btn-sm btn-block"><span class="glyphicon ${myInqList.inq_status_rpt}$"></span>${myInqList.inq_status_nm}$</button></td>
+              </tr>
+              ${endfor}$
+              ${if(myInqList==0)}$
+                      <tr><td colspan=6> 조회된 결과가 없습니다.</td></tr>
+               ${endif}$
+            </tbody>
+          </table>
+        </div><!-- /Table -->
+          ${paging_scr}$
+      </div><!-- /Content -->
+
+]]>
+	</html>
+	
+	<html name="rpt_write" inc="head">
+		<script>
+<![CDATA[
+
+function save_rpt(){
+ //검색조건값을 초기 셋팅합니다. 
+         alert('저장합니다.');
+         $.ajax({
+             cache: false,
+             type: "POST",
+             url: "/rpt_write_act.ado?s_no=${s_no}$",
+             data: $("#rpt_frm").serialize(),
+             dataType: 'json',
+             success: function(json) {
+              alert(json.msg);
+             },
+             error: function(jqXHR, textStatus, errorThrown) {
+               console.error('ERRORS: ' + textStatus);
+               alert('ERRORS: ' + textStatus);
+             }
+        });
+}
+
+function submit_rpt(){
+         alert('저장합니다.');
+         $.ajax({
+             cache: false,
+             type: "POST",
+             url: "/rpt_write_act.ado?s_no=${s_no}$&status=complete",
+             data: $("#rpt_frm").serialize(),
+             dataType: 'json',
+             success: function(json) {
+              alert(json.msg);
+              
+              $('#rpt_frm').attr('action', 'actual_report.do').submit();
+             },
+             error: function(jqXHR, textStatus, errorThrown) {
+               console.error('ERRORS: ' + textStatus);
+               alert('ERRORS: ' + textStatus);
+             }
+         });
+}
+
+  $(document).ready(function(){
+	  		 
+	  		${if(isAccess!='')}$
+	  	  	self.location.href="${isAccess}$";
+	  	  	return;
+	  	  ${endif}$	
+      //파일 업로드를 합니다. 
+      $('#file_upload').on('click', function(){
+        alert('파일을 업로드합니다.');
+        
+        var ids_arr = "";
+        
+        //$('input:file[name="file"]').each(function() {
+        $('input:file').each(function() {
+            if(this.value!=''){
+              ids_arr +=$(this).attr('ids')+"|";
+            }
+        });
+          
+        $('#file_frm').attr("target","ifrm");
+        $('#file_frm').attr("action", "/file_upload.do?s_no=${s_no}$&ids_arr="+ids_arr);
+        $('#file_frm').submit();
+      });
+
+      //수정화면이거나 완료 화면인경우 파일다운로드 링크구현
+     ${forEach:fileLst}$
+     var src_val ="/view_file.do?s_no=${fileLst.s_no}$&seq=${fileLst.seq}$";     
+     ${if(fileLst.is_img==IMG)}$
+        $('#f${fileLst.seq}$').html("<a href='"+src_val+"'><img width=100 height=100 src='"+src_val+"'></a>");
+     ${else}$
+        $('#f${fileLst.seq}$').html("<a href='"+src_val+"'>${fileLst.org_file_name}$</a>");
+     ${endif}$
+     ${endfor}$
+      
+      //조회화면 일경우 화면 구현
+     ${if(typ==inq_rpt)}$
+     		//관리자경우
+     	${if(auth!=c)}$
+     	    $('#alert_rpt').hide();
+	       	$('#rpt_info_table').show();
+	        $('#div_databox').removeClass();
+	        $('#content_id').removeClass();
+	    ${else}$
+	    	$('#alert_rpt').show();
+	    	
+        ${endif}$
+	    	//완료보고서 수정불가하도록. 
+	    	  $('input').each(function() {
+	    	  	this.disabled=true;
+	    	  });
+	    	  $('select').each(function() {
+	    	  	this.disabled=true;
+	    	  });
+	    	  $('textarea').each(function() {
+	    	  	this.disabled=true;
+	    	  });
+        $('#divSaveBtn').hide();
+        $('#nav_mnu').hide();
+        $('#upload_btn_div').hide();
+     ${endif}$ 
+      
+      //파일업로드를 위한 설정
+      $('input[type=file]').bootstrapFileInput();
+      $('.file-inputs').bootstrapFileInput();
+
+      ${if(s_no='')}$
+        alert('현재 정해진 리포트 넘버가 없습니다. 목록 페이지로 이동합니다.');
+        history.back(-1); //뒤로넘김
+      ${endif}$
+  
+     ${forEach:itemLst}$
+      //라디오 버튼인경우 처리
+      if($('input[name="${itemLst.item_cd}$"]').attr('type')=='radio') {
+		    $('input:radio[name="${itemLst.item_cd}$"]').each(function() {
+		        if(this.value=='${itemLst.val_char}$'){ 
+		            this.checked = true; 
+		        }
+		    });
+
+      //아래는 checkbox인경우의 처리
+      }else if($('input[name="${itemLst.item_cd}$"]').attr('type')=='checkbox') {
+        //alert('${itemLst.item_cd}$');
+        //값을 루핑하면서 check 처리를 해준다.
+        var chkVal = '${itemLst.val_char}$' ;
+        var chkValArr = chkVal.replaceAll("\\[","").replaceAll("\\]","").split(",");
+        $('input:checkbox[name="${itemLst.item_cd}$"]').each(function() {
+		        for(k=0; k < chkValArr.length ; k++){
+		           if(this.value==chkValArr[k].trim()){
+                 //alert(chkValArr[k]);
+                 this.checked = true;
+              }
+		        }
+        });
+        
+      }else{  //radio 버튼이 아닌 경우
+	      //alert('${itemLst.item_cd}$');
+	      //alert( $('input[name="${itemLst.item_cd}$"]').attr('type'));
+        $('#${itemLst.item_cd}$').val('${itemLst.val_char}$');
+      }
+     ${endfor}$
+
+     ${forEach:opnLst}$
+       var txt_ = $('#${opnLst.item_cd}$_hidden').val(); 
+       $('#${opnLst.item_cd}$').val(txt_);
+     ${endfor}$
+     
+     
+     //기술역량의 해당사항없을 시, 다른 체크박스 비활성화 
+     $('#D04_none').change(function(){
+     	if($('#D04_none').prop("checked") == true){
+     		$('input:checkbox[id="D04"]').each(function() {
+     			this.checked = false;
+     			this.disabled = true;
+     		});
+     	} else{
+     		$('input:checkbox[id="D04"]').each(function() {
+     			this.disabled = false;
+     		});
+     	}
+     });
+     
+     $('input:radio[name=E09]').change(function(){
+     //외주생산여부가 없는경우 입력비활성화
+     	if($('input:radio[name=E09]:checked').val() == 0){
+     		$('#out_prop').prop('disabled', true);
+     		$('input[name=E08]').attr("checked",false);
+     		$('input[name=E08]').attr("disabled",true);
+     	} else{
+     		$('input[name=E08]').attr("disabled",false);
+     		$('#out_prop').prop('disabled', false);
+     	}
+     });
+     
+     $('.tcb_number').tcbNumberOnly();
+     
+  });
+]]>
+		</script>
+<![CDATA[
+
+<div id="rpt_info_table" style="display:none">
+	<br/>
+	<table border=1 align=center>
+		<tr >
+		<th style="text-align:center;background:#cccccc">발급번호</th>
+		<th style="text-align:center;background:#cccccc">기업명</th>
+		<th style="text-align:center;background:#cccccc">사업자번호</th>
+		<th style="text-align:center;background:#cccccc">의뢰처</th>
+		<th style="text-align:center;background:#cccccc">&nbsp;실사업체&nbsp;</th>
+		<th style="text-align:center;background:#cccccc">&nbsp;실사자&nbsp;</th>
+		<th style="text-align:center;background:#cccccc">평가자</th>
+		<th style="text-align:center;background:#cccccc">실사완료일</th>
+		</tr>
+		<tr>
+		<td>&nbsp;${rpt_info.report_no}$&nbsp;</td>
+		<td>&nbsp;${rpt_info.r_cmp_nm}$&nbsp;</td>
+		<td>&nbsp;${rpt_info.r_bz_ins_no}$</td>
+		<td>&nbsp;${rpt_info.clp_nm}$&nbsp;${rpt_info.req_branch}$&nbsp;</td>
+		<td>&nbsp;${rpt_info.grp_nm}$&nbsp;</td>
+		<td>&nbsp;${rpt_info.user_nm}$&nbsp;</td>
+		<td>&nbsp;${rpt_info.name}$&nbsp;</td>
+		<td>&nbsp;${rpt_info.inq_act_date}$&nbsp;</td>
+		</tr>
+	</table>
+	<br/>
+</div>
+${forEach:opnLst}$
+<textarea id="${opnLst.item_cd}$_hidden" style="display:none">${opnLst.val_txt}$</textarea>
+${endfor}$
+      <!-- Content -->
+      <div id="alert_rpt" align=right style="display:none"> <h5>조회모드입니다. 완료된 보고서는 수정할 수 없습니다.&nbsp;&nbsp;&nbsp;</h5></div>
+      <div align=right> <h5>대상기업: ${infoMap.r_cmp_nm}$&nbsp;&nbsp;&nbsp;</h5></div>
+      <div id="content_id" class="col-sm-10">
+        <nav id = "nav_mnu" class="navbar navi-section">
+          <div class="container-fluid row">
+            <ul class="nav navbar-nav">
+              <li><a href="#section1">경영관리</a></li>
+              <li><a href="#section2">보유기술현황</a></li>
+              <li><a href="#section3">재무현황</a></li>
+              <li><a href="#section4">기술역량</a></li>
+              <li><a href="#section5">생산역량</a></li>
+              <li><a href="#section6">판매역량</a></li>
+              <li><a href="#section7">시장현황</a></li>
+              <li><a href="#section8">기타</a></li>
+            </ul>
+          </div>
+          
+     <div class="always-top" align=right>
+	
+		<button class="btn btn-success btn-sm" onclick="save_rpt();"><span class="glyphicon glyphicon-save"></span> 저장</button>
+		<button class="btn btn-primary btn-sm" onclick="submit_rpt();" ><span class="glyphicon glyphicon-upload"></span> 제출하기</button>
+	
+	</div>
+        </nav>
+        
+        <!-- section box -->
+        <div id="div_databox" class="section-box" data-spy="scroll" data-target=".navbar" data-offset="150"> 
+          <form name="rpt_frm" id="rpt_frm" method="post">
+          <!-- section1 -->
+          <div id="section1" class="section-default container-fluid">
+            <h4 class="section-title">경영관리</h4>
+            <!-- Table -->
+            <table class="table table-default table-section tbody-td-left">
+              <thead>
+                <tr>
+                  <th>항목</th>
+                  <th>확인사항</th>
+                  <th>결과</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>경영주 경력</td>
+                  <td>
+                    경영주의 동업종 근무 경력이
+                    <label class="text-block">1. 20년 이상</label>
+                    <label class="text-block">2. 15년 이상</label>
+                    <label class="text-block">3. 10년 이상</label>
+                    <label class="text-block">4. 5년 이상</label>
+                    <label class="text-block">5. 5년 미만</label>
+                  </td>
+                  <td>
+                    <select  id="A01"  name="A01" class="form-control input-sm">
+                      <option value='0' ></option>
+                      <option value='1' >20년 이상</option>
+                      <option value='2' >15년 이상</option>
+                      <option value='3' >10년 이상</option>
+                      <option value='4' >5년 이상</option>
+                      <option value='5' >5년 미만</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td>인센티브제도</td>
+                  <td>기술인력 대상 직무발명 보상관리, 우리사주제도, 스톡옵션 등을 갖추고 있다.</td>
+                  <td>
+                    <label class="radio-inline"><input type="radio"  value='1'   id="A02"  name="A02" >여</label>
+                    <label class="radio-inline"><input type="radio"  value='0'   id="A02"  name="A02" >부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>재무회계지식</td>
+                  <td>경영주가 재무와 회계분야에서 근무한 경력이 있거나, 관련 자격증을 보유 또는 회계관련 교육을 이수한 경험이 있다.</td>
+                  <td>
+                    <label class="radio-inline"><input type="radio" value='1' id="A03"  name="A03">여</label>
+                    <label class="radio-inline"><input type="radio" value='0' id="A03"  name="A03">부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>제품기획</td>
+                  <td>기술(제품 등)에 대한 이해를 바탕으로 단계별 일정 및 소요예산에 대한 구체적인 계획을 수립하고 있다.</td>
+                  <td>
+                    <label class="radio-inline"><input type="radio" value='1' id="A04"  name="A04">여</label>
+                    <label class="radio-inline"><input type="radio" value='0' id="A04"  name="A04">부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>신규채용</td>
+                  <td>최근 1년 이내 기술인력 신규 고용실적이 있다.</td>
+                  <td>
+                    <label class="radio-inline"><input type="radio"  value='1' id="A05"  name="A05">여</label>
+                    <label class="radio-inline"><input type="radio"  value='0' id="A05"  name="A05">부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>사업화 경험<br>(최근 3년)</td>
+                  <td>
+                    1. 경영주가 신청기술(제품)과 동일/유사한 산업에서 성공한 경험이 있다.<br>
+                    2. 경영주가 타산업내에서 성공한 경험이 있다.<br>
+                    3. 경영주 또는 경영진이 창업한 이력이 있다.<br>
+                    4. 경영주 또는 경영진이 창업기업에서 근무한 경력이 있다.<br>
+                    5. 해당사항 없음<br>
+                  </td>
+                  <td>
+                    <select class="form-control input-sm"  id="A06"  name="A06">
+                      <option value='0' ></option>
+                      <option value='1' >1 번</option>
+                      <option value='2' >2 번</option>
+                      <option value='3' >3 번</option>
+                      <option value='4' >4 번</option>
+                      <option value='5' >5 번</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td>경영진 변동</td>
+                  <td>최근 1년 이내 경영진의 변동이 없다.</td>
+                  <td>
+                    <label class="radio-inline"><input  value='1' type="radio"  id="A07"  name="A07">여</label>
+                    <label class="radio-inline"><input  value='0' type="radio"  id="A07"  name="A07">부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>업무분장</td>
+                  <td>적절한 업무분장 및 권한위임과 통제가 잘 이루어지고 있다.</td>
+                  <td>
+                    <label class="radio-inline"><input  value='1' type="radio"  id="A08"  name="A08">여</label>
+                    <label class="radio-inline"><input  value='0' type="radio"  id="A08"  name="A08">부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>네트워크</td>
+                  <td>주요경영진이 정부 또는 민간의 창업지원사업에 참여한 적이 있다.</td>
+                  <td>
+                    <label class="radio-inline"><input  value='1' type="radio"  id="A09"  name="A09" >여</label>
+                    <label class="radio-inline"><input  value='0' type="radio"  id="A09"  name="A09" >부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>상세의견</td>
+                  <td colspan="2">
+<textarea class="form-control input-sm" rows="5"  id="A90"  name="A90"></textarea></td>
+                </tr>
+              </tbody>
+            </table><!-- /Table -->
+          </div><!-- /section1 -->
+          
+          <!-- section2 -->
+          <div id="section2" class="section-default container-fluid">
+            <h4 class="section-title">보유기술현황</h4>
+            <!-- Table -->
+            <table class="table table-default tbody-td-left">
+              <thead>
+                <tr>
+                  <th width="90">항목</th>
+                  <th>확인 및 결과</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>기술개발실적 (최근 3년)</td>
+                  <td>
+                    <div class="input-group input-group-sm mb5">
+                      <span class="input-group-addon">수상</span>
+                      <input type="text" class="form-control textR tcb_number" id="B01"  name="B01" >
+                      <span class="input-group-addon">건</span>
+                    </div>
+                    <div class="input-group input-group-sm mb5">
+                      <span class="input-group-addon">인증</span>
+                      <input type="text" class="form-control textR tcb_number" id="B02"  name="B02"   >
+                      <span class="input-group-addon">건</span>
+                    </div>
+                    <div class="input-group input-group-sm mb5">
+                      <span class="input-group-addon">기술개발(시제품제작완료)</span>
+                      <input type="text" class="form-control textR tcb_number" id="B03"  name="B03"  >
+                      <span class="input-group-addon">건</span>
+                    </div>
+                    <div class="input-group input-group-sm mb5">
+                      <span class="input-group-addon">기술상용화(시장출시제품)</span>
+                     <input type="text" class="form-control textR tcb_number" id="B04"  name="B04"  >
+                      <span class="input-group-addon">건</span>
+                    </div>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-addon">제품상용화(기술개발건의 사양을 변경하여 납품)실적은 각각 몇 건인가?</span>
+                      <input type="text" class="form-control textR tcb_number" id="B05"  name="B05" >
+                      <span class="input-group-addon">건</span>
+                    </div>
+                    (창업 후 3년 이내 경영주 혹은 핵심기술인력 실적 인정)
+                  </td>
+                </tr>
+                <tr class="table-block-line">
+                  <td>지식재산권 보유</td>
+                  <td>
+                    <div class="input-group input-group-sm mb5">
+                      <span class="input-group-addon">특허등록 및 품종보호권</span>
+                      <input type="text" class="form-control textR tcb_number" id="B06"  name="B06">
+                      <span class="input-group-addon">건</span>
+                    </div>
+                    <div class="input-group input-group-sm mb5">
+                      <span class="input-group-addon">특허출원</span>
+                      <input type="text" class="form-control textR tcb_number" id="B07"  name="B07" >
+                      <span class="input-group-addon">건</span>
+                    </div>
+                    <div class="input-group input-group-sm mb5">
+                      <span class="input-group-addon">실용신안등록</span>
+                      <input type="text" class="form-control textR tcb_number" id="B08"  name="B08" >
+                      <span class="input-group-addon">건</span>
+                    </div>
+                    <div class="input-group input-group-sm mb5">
+                      <span class="input-group-addon">실용신안출원</span>
+                      <input type="text" class="form-control textR tcb_number" id="B09"  name="B09">
+                      <span class="input-group-addon">건</span>
+                    </div>
+                    <div class="input-group input-group-sm mb5">
+                      <span class="input-group-addon">디자인 등록</span>
+                      <input type="text" class="form-control textR tcb_number" id="B10"  name="B10">
+                      <span class="input-group-addon">건</span>
+                    </div>
+                    <div class="input-group input-group-sm mb5">
+                      <span class="input-group-addon">상표권 등록</span>
+                      <input type="text" class="form-control textR tcb_number" id="B11"  name="B11">
+                      <span class="input-group-addon">건</span>
+                    </div>
+                    <div class="input-group input-group-sm mb5">
+                      <span class="input-group-addon">프로그램 등록</span>
+                      <input type="text" class="form-control textR tcb_number" id="B12"  name="B12">
+                      <span class="input-group-addon">건</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr class="table-block-line">
+                  <td>상세의견</td>
+                  <td>
+<textarea class="form-control input-sm" rows="5"  id="B90"  name="B90" >
+</textarea></td>
+                </tr>
+              </tbody>
+            </table><!-- /Table -->
+          </div><!-- /section2 -->
+          
+          <!-- section3 -->
+          <div id="section3" class="section-default container-fluid">
+            <h4 class="section-title">재무현황</h4>
+            <!-- Table -->
+            <table class="table table-default table-section tbody-td-left">
+              <thead>
+                <tr>
+                  <th>항목</th>
+                  <th>확인사항</th>
+                  <th style="width:200px;">결과</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>투자유치</td>
+                  <td>공인된 외부기관(금융기관, 투자조합, 벤처캐피탈 등)으로부터 투자 받은 실적이 있다(법인등기부등본 기재필)</td>
+                  <td>
+                    <div class="input-group input-group-sm">
+                      <input type="text" class="form-control textR tcb_number" id="C01"  name="C01">
+                      <span class="input-group-addon">회</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>차입현황</td>
+                  <td>공인된 외부기관(기보, 신보, 중진공 등)으로부터 외부 평가를 수반한 자금을 차입한 실적이 있다.</td>
+                  <td>
+                    <div class="input-group input-group-sm">
+                      <input type="text" class="form-control textR tcb_number"  id="C02"  name="C02" >
+                      <span class="input-group-addon">회</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>정부기술개발 사업</td>
+                  <td>정부지원기술개발사업을 수행한 실적이 있다. (1억원 이상 시 1건)</td>
+                  <td>
+                    <div class="input-group input-group-sm">
+                      <input type="text" class="form-control textR tcb_number" id="C03"  name="C03">
+                      <span class="input-group-addon">건</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>상세의견</td>
+                  <td colspan="2">
+<textarea class="form-control input-sm" rows="5"  id="C90"  name="C90"></textarea></td>
+                </tr>
+              </tbody>
+            </table><!-- /Table -->
+          </div><!-- /section3 -->
+          
+          <!-- section4 -->
+          <div id="section4" class="section-default container-fluid">
+            <h4 class="section-title">기술역량</h4>
+            <!-- Table -->
+            <table class="table table-default table-section tbody-td-left">
+              <thead>
+                <tr>
+                  <th>항목</th>
+                  <th>확인사항</th>
+                  <th>결과</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>R&amp;D 전담조직</td>
+                  <td>
+                    1. 공인된 기업부설연구소를 3년 이상 운영하고 있다.<br>
+                    2. 공인된 기업부설연구소를 3년 미만 운영하고 있다.<br>
+                    3. 연구개발전담부서를 보유하고 있다.<br>
+                    4. 기술인력을 확보하고 있다.<br>
+                    5. 기술인력이 없다.<br>
+                  </td>
+                  <td>
+                    <select class="form-control input-sm"  id="D01"  name="D01">
+                      <option value='0' ></option>
+                      <option value='1' >1 번</option>
+                      <option value='2' >2 번</option>
+                      <option value='3' >3 번</option>
+                      <option value='4' >4 번</option>
+                      <option value='5' >5 번</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td>기술책임자</td>
+                  <td>경영주 외 기술책임자를 보유하고 있다.</td>
+                  <td>
+                    <label class="radio-inline"><input  value='1' type="radio"  id="D02"  name="D02">여</label>
+                    <label class="radio-inline"><input  value='0' type="radio"  id="D02"  name="D02">부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>기술인력</td>
+                  <td>기술책임자 외 실질적 상근 기술(생산)인력을 보유하고 있다.</td>
+                  <td>
+                    <label class="radio-inline"><input  value='1' type="radio"  id="D03"  name="D03" >여</label>
+                    <label class="radio-inline"><input  value='0' type="radio"  id="D03"  name="D03" >부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>기술난이도</td>
+                  <td>
+                    <div class="checkbox">
+                      <label><input type="checkbox"  id="D04"  name="D04" value="1">기술개발 시 개발비가 많이 요구된다.</label>
+                    </div>
+                    <div class="checkbox">
+                      <label><input type="checkbox"  id="D04"  name="D04" value="2">기술개발 시 소요되는 기간이 길다.</label>
+                    </div>
+                    <div class="checkbox">
+                      <label><input type="checkbox"  id="D04"  name="D04" value="3">지식재산권(특허, 실용신안, 상표, 디자인 등)으로 등록(출원 제외)되어있다.</label>
+                    </div>
+                    <div class="checkbox">
+                      <label><input type="checkbox"  id="D04"  name="D04" value="4">리버스엔지니어링으로 모방하기 어려운 기술이다.</label>
+                    </div>
+                    <div class="checkbox">
+                      <label><input type="checkbox"  id="D04_none"  name="D04" value="5">해당사항 없음</label>
+                    </div>
+                  </td>
+                  <td>(복수선택가능)</td>
+                </tr>
+                <tr>
+                  <td>기술수명</td>
+                  <td>
+                    <label class="text-block">1. 도입기 </label>
+                    <label class="text-block">2. 성장 초기 </label>
+                    <label class="text-block">3. 성장기 </label>
+                    <label class="text-block">4. 성숙기 </label>
+                    <label class="text-block">5. 쇠퇴기</label>
+                  </td>
+                  <td>
+                    <select class="form-control input-sm"  id="D05"  name="D05"  >
+                      <option value='0' ></option>
+                      <option value='1' >1 번 도입기</option>
+                      <option value='2' >2 번 성장 초기</option>
+                      <option value='3' >3 번 성장기</option>
+                      <option value='4' >4 번 성숙기</option>
+                      <option value='5' >5 번 쇠퇴기</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td>개발단계</td>
+                  <td>
+                    <label class="text-block">1. 아이디어단계</label>
+                    <label class="text-block">2. 연구개발단계(시제품제작완료)</label>
+                    <label class="text-block">3. 제품화완료단계</label>
+                    <label class="text-block">4. 양산준비단계</label>
+                    <label class="text-block">5. 판매단계</label>
+                  </td>
+                  <td>
+                    <select class="form-control input-sm"  id="D06"  name="D06" >
+                      <option value='0' ></option>
+                      <option value='1' >1 번</option>
+                      <option value='2' >2 번</option>
+                      <option value='3' >3 번</option>
+                      <option value='4' >4 번</option>
+                      <option value='5' >5 번</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td>상세의견</td>
+                  <td colspan="2">
+<textarea class="form-control input-sm" rows="5"  id="D90"  name="D90" ></textarea></td>
+                </tr>
+              </tbody>
+                
+            </table><!-- /Table -->
+          </div><!-- /section4 -->
+          
+          <!-- section5 -->
+          <div id="section5" class="section-default container-fluid">
+            <h4 class="section-title">생산역량</h4>
+            <!-- Table -->
+            <table class="table table-default table-section tbody-td-left">
+              <thead>
+                <tr>
+                  <th>항목</th>
+                  <th>확인사항</th>
+                  <th>결과</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>생산시설규모</td>
+                  <td>현재 생산시설로 예상수요를 충분히 생산할 수 있다.</td>
+                  <td>
+                    <label class="radio-inline"><input  value='1'   type="radio"  id="E01"  name="E01" >여</label>
+                    <label class="radio-inline"><input  value='0'   type="radio"  id="E01"  name="E01" >부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>생산시설수준</td>
+                  <td>현재 생산시설이 양호하여 기업 경쟁력에 도움이 된다.</td>
+                  <td>
+                    <label class="radio-inline"><input  value='1'   type="radio"  id="E02"  name="E02"  >여</label>
+                    <label class="radio-inline"><input  value='0'   type="radio"  id="E02"  name="E02"  >부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>생산인력수급</td>
+                  <td>생산시설을 가동하기 위한 인력 수급에 문제가 없다.</td>
+                  <td>
+                    <label class="radio-inline"><input  value='1'   type="radio"  id="E03"  name="E03"  >여</label>
+                    <label class="radio-inline"><input  value='0'   type="radio"  id="E03"  name="E03"  >부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>생산인력수준</td>
+                  <td>생산인력의 교육 정도나 경험수준이 높아 생산성 향상에 도움이 된다.</td>
+                  <td>
+                    <label class="radio-inline"><input value='1'    type="radio"  id="E04"  name="E04">여</label>
+                    <label class="radio-inline"><input value='0'    type="radio"  id="E04"  name="E04">부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>원재료수급</td>
+                  <td>경쟁업체에 비하여 우월한 입장에서 원재료나 부품을 조달할 수 있다.</td>
+                  <td>
+                    <label class="radio-inline"><input value='1'    type="radio"  id="E05"  name="E05" >여</label>
+                    <label class="radio-inline"><input value='0'    type="radio"  id="E05"  name="E05" >부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>시설투자현황</td>
+                  <td>최근 시설 투자한 연도는 언제인가?</td>
+                  <td>
+                    <div class="input-group input-group-sm">
+                      <input type="text" class="form-control textR tcb_number" id="E06"  name="E06" >
+                      <span class="input-group-addon">년</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>외주생산여부</td>
+                  <td>외주생산하는 품목이 있는가?</td>
+                  <td>
+                    <label class="radio-inline"><input  value='1'   type="radio"  id="E09"  name="E09" >여</label>
+                    <label class="radio-inline"><input  value='0'   type="radio"  id="E09"  name="E09" >부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>외주생산비율</td>
+                  <td>외주생산비율은 어느 정도인가?</td>
+                  <td>
+                    <div class="input-group input-group-sm">
+                      <input type="text" id="out_prop" class="form-control textR tcb_number" id="E07"  name="E07">
+                      <span class="input-group-addon">%</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>외주업체와의 관계</td>
+                  <td>납기에 맞추어 생산할 수 있도록 외주업체와의 거래조건, 거래기간 등이 체결되어 있다.</td>
+                  <td>
+                    <label class="radio-inline"><input  value='1'   type="radio"  id="E08"  name="E08" >여</label>
+                    <label class="radio-inline"><input  value='0'   type="radio"  id="E08"  name="E08" >부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>상세의견</td>
+                  <td colspan="2">
+<textarea class="form-control input-sm" rows="5"  id="E90"  name="E90"></textarea></td>
+                </tr>
+              </tbody>
+            </table><!-- /Table -->
+          </div><!-- /section5 -->
+          
+          <!-- section6 -->
+          <div id="section6" class="section-default container-fluid">
+            <h4 class="section-title">판매역량</h4>
+            <!-- Table -->
+            <table class="table table-default table-section tbody-td-left">
+              <thead>
+                <tr>
+                  <th>항목</th>
+                  <th>확인사항</th>
+                  <th>결과</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>판매계획수립</td>
+                  <td>
+                    <div class="checkbox">
+                      <label><input type="checkbox"  id="F01"  name="F01" value="1">영업 및 마케팅, 광고, 홍보 등을 전담하는 인력을 확보하고 있다.</label>
+                    </div>
+                    <div class="checkbox">
+                      <label><input type="checkbox"  id="F01"  name="F01" value="2">목표시장의 규모 및 수요예측자료를 확보하고 있다.</label>
+                    </div>
+                    <div class="checkbox">
+                      <label><input type="checkbox"  id="F01"  name="F01" value="3">경쟁업체 분석자료를 확보하고 있다.</label>
+                    </div>
+                    <div class="checkbox">
+                      <label><input type="checkbox"  id="F01"  name="F01" value="4">광고홍보전략 수립 및 실현가능성(비용, 전략, 세부실행계획 유무 등)이 있다.</label>
+                    </div>
+                  </td>
+                  <td>(복수선택가능)</td>
+                </tr>
+                <tr>
+                  <td>판매처</td>
+                  <td>
+                    1. 판매처가 다양할 뿐만 아니라 오랜 기간 거래관계를 유지하면서 향후 지속적인 거래를 유지할 가능성이 크다.<br>
+                    2. 판매처가 다양하나 기 확보한 판매처가 일부 제한적이고, 유동적이어서 추가적인 판매처를 구축 중에 있다.<br>
+                    3. 신규 판매처를 구축 중에 있으며, 판매처 구축에 관한 실현 가능한 계획이 수립되어 있고, 일부 진행 중이다.<br>
+                    4. 신규 판매처를 구축 중에 있으나, 판매처 구축에 관한 계획의 실현 가능성이 떨어진다.<br>
+                    5. 판매처 확보에 어려움이 예상되고, 판로구축에 관한 구체적인 계획 수립이 미흡하다.
+                  </td>
+                  <td>
+                    <select  id="F02"  name="F02" class="form-control input-sm">
+                      <option value='0' ></option>
+                      <option value='1' >1 번</option>
+                      <option value='2' >2 번</option>
+                      <option value='3' >3 번</option>
+                      <option value='4' >4 번</option>
+                      <option value='5' >5 번</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td>상세의견</td>
+                  <td colspan="2">
+<textarea class="form-control input-sm" rows="5"  id="F90"  name="F90" ></textarea></td>
+                </tr>
+              </tbody>
+            </table><!-- /Table -->
+          </div><!-- /section6 -->
+          
+          <!-- section7 -->
+          <div id="section7" class="section-default container-fluid">
+            <h4 class="section-title">시장현황</h4>
+            <!-- Table -->
+            <table class="table table-default table-section tbody-td-left">
+              <thead>
+                <tr>
+                  <th>항목</th>
+                  <th>확인사항</th>
+                  <th>결과</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>목표시장규모</td>
+                  <td>
+                    <p>동사 신청기술(제품)의 시장규모가</p> 
+                    <label class="text-block">1. 매우 크다. (5000억 이상)</label>
+                    <label class="text-block">2. 크다.  (3000억 이상)</label>
+                    <label class="text-block">3. 보통이다.  (1000억 이상)</label>
+                    <label class="text-block">4. 작다.  (300~500억 이상)</label><br>
+                    <label class="text-block">5. 시장형성이 불투명하다.</label>
+                  </td>
+                  <td>
+                    <select class="form-control input-sm"  id="G01"  name="G01" >
+                      <option value='0' ></option>
+                      <option value='1' >1 번</option>
+                      <option value='2' >2 번</option>
+                      <option value='3' >3 번</option>
+                      <option value='4' >4 번</option>
+                      <option value='5' >5 번</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td>시장구조</td>
+                  <td>
+                    <div class="checkbox">
+                      <label><input type="checkbox"  id="G02"  name="G02" value="1">다수 경쟁자가 적절하게 시장을 분할하고 있다.</label>
+                    </div>
+                    <div class="checkbox">
+                      <label><input type="checkbox"  id="G02"  name="G02" value="2">소비자에게 차별화된 제품을 제공하는 것이 가능하다.</label>
+                    </div>
+                    <div class="checkbox">
+                      <label><input type="checkbox"  id="G02"  name="G02" value="3">고정비의 비중이 적어 경기변동에도 안정적인 수익성을 유지할 수 있다.</label>
+                    </div>
+                    <div class="checkbox">
+                      <label><input type="checkbox"  id="G02"  name="G02" value="4">시장형성이 초기단계로 대표기업이나 대표제품이 존재하지 않는다.</label>
+                    </div>
+                    <div class="checkbox">
+                      <label><input type="checkbox"  id="G02"  name="G02" value="5">향후에도 지속적인 시장성장이 전망된다.</label>
+                    </div>
+                  </td>
+                  <td>(복수선택가능)</td>
+                </tr>
+                <tr>
+                  <td>선점효과</td>
+                  <td>신청기술의 사업화 시 해당 시장의 선점효과가 있다.</td>
+                  <td>
+                    <label class="radio-inline"><input  value='1' type="radio"  id="G03"  name="G03"  name="section7-1">여</label>
+                    <label class="radio-inline"><input  value='0' type="radio"  id="G03"  name="G03"  name="section7-1">부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>인지도</td>
+                  <td>
+                    <div class="checkbox">
+                      <label><input id="G04"  name="G04" type="checkbox" value="1">개발제품의 메이저 버전업은 지속적으로 이루어지고 있다.</label>
+                    </div>
+                    <div class="checkbox">
+                      <label><input id="G04"  name="G04" type="checkbox" value="2">자사 생산(판매)제품의 브랜드 인지도가 “우선 떠오르는(Top of mind)” 수준 이상이다.</label>
+                    </div>
+                    <div class="checkbox">
+                      <label><input id="G04"  name="G04" type="checkbox" value="3">목표고객층이 명확하고 충성도가 높다.</label>
+                    </div>
+                  </td>
+                  <td>(복수선택가능)</td>
+                </tr>
+                <tr>
+                  <td class="first-rowspan" rowspan="4">비교우위성</td>
+                  <td>경쟁제품이 소수이다.</td>
+                  <td>
+                    <label class="radio-inline"><input  value='1' type="radio"  id="G11"  name="G11" >여</label>
+                    <label class="radio-inline"><input  value='0' type="radio"  id="G11"  name="G11" >부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>경쟁제품에 비해 상대적으로 가격경쟁력이 있다.</td>
+                  <td>
+                    <label class="radio-inline"><input  value='1' type="radio"  id="G12"  name="G12"  >여</label>
+                    <label class="radio-inline"><input  value='0' type="radio"  id="G12"  name="G12"  >부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>경쟁제품에 비해 상대적으로 품질경쟁력이 있다.</td>
+                  <td>
+                    <label class="radio-inline"><input  value='1' type="radio"  id="G13"  name="G13" >여</label>
+                    <label class="radio-inline"><input  value='0' type="radio"  id="G13"  name="G13" >부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>자사 제품으로 교체하는데 있어 비용에 대한 제약이 거의 없다.</td>
+                  <td>
+                    <label class="radio-inline"><input  value='1' type="radio"  id="G14"  name="G14"  >여</label>
+                    <label class="radio-inline"><input  value='0' type="radio"  id="G14"  name="G14"  >부</label>
+                  </td>
+                </tr>
+                <tr>
+                  <td>상세의견</td>
+                  <td colspan="2">
+<textarea class="form-control input-sm" rows="5"  id="G90"  name="G90" ></textarea></td>
+                </tr>
+              </tbody>
+            </table><!-- /Table -->
+          </div><!-- /section7 -->
+          
+          <!-- section8 -->
+          <div id="section8" class="section-default container-fluid">
+            <h4 class="section-title">기타 추가의견</h4>
+<textarea class="form-control input-sm" rows="8"  id="H90"  name="H90" ></textarea>
+          </div><!-- /section8 -->
+          </form>
+          ${import:tcsv@part_file_upload}$
+          <!-- Button -->
+          <div id="divSaveBtn" class="textC mt50 mb50">
+            <button onclick="save_rpt();" type="button" class="btn btn-primary btn-lg mr60"><span class="glyphicon glyphicon-save"></span> 저장하기</button>
+            <button onclick="submit_rpt();" type="button" class="btn btn-success btn-lg"><span class="glyphicon glyphicon-ok"></span> 제출하기</button>
+          </div><!-- /Button -->
+        </div>
+      </div><!-- /Content -->
+   
+]]>
+	</html>
+  <html name="part_file_upload">
+    <![CDATA[
+	
+	        <form name="file_frm" id="file_frm" method="post" enctype="multipart/form-data"> 
+          <div id="section9" class="section-default container-fluid">
+
+            <h4 class="file-title">현장사진, 기타 체크리스트 등</h4>
+            <div class="file-wrap">
+              <div class="col-sm-6 section-file">
+                <span id="f1"></span>
+                <div><input ids="1" name="file1" type="file" class="btn-primary" title="<span class='glyphicon glyphicon-folder-open'></span>&nbsp;&nbsp;Search"></div>
+                <span id="f2"></span>
+                <div><input  ids="2" name="file2" type="file" class="btn-primary" title="<span class='glyphicon glyphicon-folder-open'></span>&nbsp;&nbsp;Search"></div>
+                <span id="f3"></span>
+                <div><input  ids="3" name="file3" type="file" class="btn-primary" title="<span class='glyphicon glyphicon-folder-open'></span>&nbsp;&nbsp;Search"></div>
+                <span id="f4"></span>
+                <div><input  ids="4" name="file4" type="file" class="btn-primary" title="<span class='glyphicon glyphicon-folder-open'></span>&nbsp;&nbsp;Search"></div>
+                <span id="f5"></span>
+                <div><input  ids="5" name="file5" type="file" class="btn-primary" title="<span class='glyphicon glyphicon-folder-open'></span>&nbsp;&nbsp;Search"></div>
+              </div>
+              <div class="col-sm-6 section-file">
+                <span id="f6"></span>
+                <div><input  ids="6" name="file6" type="file" class="btn-primary" title="<span class='glyphicon glyphicon-folder-open'></span>&nbsp;&nbsp;Search"></div>
+                <span id="f7"></span>
+                <div><input  ids="7" name="file7" type="file" class="btn-primary" title="<span class='glyphicon glyphicon-folder-open'></span>&nbsp;&nbsp;Search"></div>
+                <span id="f8"></span>
+                <div><input  ids="8" name="file8" type="file" class="btn-primary" title="<span class='glyphicon glyphicon-folder-open'></span>&nbsp;&nbsp;Search"></div>
+                <span id="f9"></span>
+                <div><input  ids="9" name="file9" type="file" class="btn-primary" title="<span class='glyphicon glyphicon-folder-open'></span>&nbsp;&nbsp;Search"></div>
+                <span id="f10"></span>
+                <div><input  ids="10" name="file10" type="file" class="btn-primary" title="<span class='glyphicon glyphicon-folder-open'></span>&nbsp;&nbsp;Search"></div>
+              </div>
+              <div class="clear-both"></div>
+              <div id="upload_btn_div" class="textR mt15 mb15" style="padding-top:15px; border-top:1px solid #ddd;">
+              <button id="file_upload" type="button" class="btn btn-info btn-sm mr60"><span class="glyphicon glyphicon-save"></span>파일업로드하기</button></div>
+            </div>
+          </div><!-- /section9 -->
+          </form>
+          <iframe id="ifrm" name="ifrm" width=0 height=0 alt=""></iframe>  
+ ]]>
+ </html>
+
+	<html name="my_info">
+		<!-- +'&newPw='+$('#newPw').val() -->
+		<script><![CDATA[
+  $(document).ready(function(){
+    //내 정보수정하기 비밀번호확인
+      $('#btnModPwChk').on('click', function(){
+         $.ajax({
+             cache: false,
+             type: "get",
+             url: "/info_pwchk_proc.ado",
+             data: 'infoPw='+$('#infoPw').val(),
+             dataType: 'json',
+             success: function(json) {
+              
+              if (json.msg == ""){
+                $('#modal-login').modal('hide');
+                $('#modal-modify').modal('show');
+               }else{ alert(json.msg); }
+           
+           $('#infoPw').val("");
+             },
+             error: function(jqXHR, textStatus, errorThrown) {
+               console.error('ERRORS: ' + textStatus);
+               alert('ERRORS: ' + textStatus);
+             }
+        });
+      });
+      
+      //내 정보 수정
+      $('#btnModInfo').on('click', function(){
+        var nm = $('#user_nm').val();
+        var tel = $('#tel').val();
+        var cell = $('#cell').val();
+        var addr = $('#addr').val();
+        var email = $('#email').val();
+
+         $.ajax({
+             cache: false,
+             type: "POST",
+             url: "/my_info_proc.ado",
+             data: $("#rain_frm").serialize(),
+             dataType: 'json',
+             success: function(json) {
+               $('#modal-modify').modal('hide');
+               alert(json.msg);
+           $('#info_user_nm').text(nm); $('#info_tel').text(tel); $('#info_cell').text(cell); 
+           $('#info_addr').text(addr); $('#info_email').text(email);
+           
+             },
+             error: function(jqXHR, textStatus, errorThrown) {
+               console.error('ERRORS: ' + textStatus);
+               alert('ERRORS: ' + textStatus);
+             }
+        });
+      });
+      
+      
+  });
+]]>
+		</script>
+<![CDATA[
+  <!-- Content -->
+      <div class="col-sm-10">
+        <!-- Table -->
+        <div class="table-responsive">
+          <table class="table table-default tbody-td-left">
+            <colgroup>
+              <col width="">
+              <col width="70%">
+            </colgroup>
+            <tbody>
+              <tr>
+                <th>성명</th>
+                <td><span id="info_user_nm">${user_info.user_nm}$</span></td>
+              </tr>
+              <tr>
+                <th>전화번호</th>
+                <td><span id="info_tel">${user_info.tel}$</span></td>
+              </tr>
+              <tr>
+                <th>휴대폰</th>
+                <td><span id="info_cell">${user_info.cell}$</span></td>
+              </tr>
+              <tr>
+                <th>이메일</th>
+                <td><span id="info_email">${user_info.email}$</span></td>
+              </tr>
+              <tr>
+                <th>주소</th>
+                <td><span id="info_addr">${user_info.addr}$</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div><!-- /Table -->
+        
+        <!-- Button -->
+        <div class="textC mt20">
+          <button class="btn btn-primary mr50" type="button" data-toggle="modal" data-target="#modal-login"><span class="glyphicon glyphicon-user"></span> 정보수정</button>
+        </div>
+      </div><!-- /Content -->
+      
+      
+      <!-- Modal Login -->
+      <div class="modal fade" id="modal-login" role="dialog">
+        <div class="modal-dialog modal-sm">
+          <!-- Modal content-->
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+              <h3 class="modal-title">실사자 정보 수정</h3>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+              <div class="modal-company-title">실사자 본인 확인(패스워드)</div>
+              <input id="infoPw" class="form-control input-sm" type="password">
+            </div><!-- /Modal Body -->
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+              <button type="button" class="btn btn-warning" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> 취소</button>
+              <button type="button" id="btnModPwChk" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> 수정하기</button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /Modal Login -->
+      
+      
+      <!-- Modal Modify -->
+      <div class="modal fade" id="modal-modify" role="dialog">
+        <div class="modal-dialog modal-lg">
+          <!-- Modal content-->
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+              <h3 class="modal-title">실사자 정보 수정</h3>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+              <!-- Table -->
+              <div class="table-responsive">
+                <form name="rain_frm" id="rain_frm" method=post>
+                <table class="table table-info">
+                  <colgroup>
+                    <col width="">
+                    <col width="40%">
+                    <col width="">
+                    <col width="40%">
+                  </colgroup>
+                  <tbody>
+                    <tr>
+                      <th>성명</th>
+                      <td><input name="user_nm"  id="user_nm" class="form-control input-sm" type="text" value="${user_info.user_nm}$"></td>
+                      <th>권한</th>
+                      <td>실사자</td>
+                    </tr>
+                    <tr>
+                      <th>전화번호</th>
+                      <td><input name="tel" id="tel" class="form-control input-sm" type="tel" value="${user_info.tel}$"> </td>
+                      <th>휴대폰</th>
+                      <td><input name="cell" id="cell" class="form-control input-sm" type="tel" value="${user_info.cell}$"></td>
+                    </tr>
+                    <tr>
+                      <th>이메일</th>
+                      <td><input name="email" id="email" class="form-control input-sm" type="email" value="${user_info.email}$"></td>
+                      <th>주소</th>
+                      <td>
+                      <input name="addr" id="addr" class="form-control input-sm" type="text" value="${user_info.addr}$">
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+               </form>
+              </div><!-- /Table -->
+            </div><!-- /Modal Body -->
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+              <button type="button" class="btn btn-warning" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> 취소</button>
+              <button type="button" id="btnModInfo" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> 수정하기</button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /Modal Modify -->
+      
+      
+]]>
+	</html>
+
+  <html name="msg_page" inc="head">
+    <![CDATA[
+                <br/><br/><br/><br/>
+                <div width=100% style="text-align:center">
+                <label class="btn btn-warning " style="width:50%">
+                  ${msg}$
+                </label>
+                </div>
+    ]]>
+
+    </html>
+	<!-- 여기까지 나래 영역 끄으으으으읕 -->
+</scrMap>
+
