@@ -1,6 +1,6 @@
 package dto;
 
-public class W3CData {
+public class W3CData{
 
 	String company;
 	String contact;

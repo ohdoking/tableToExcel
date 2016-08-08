@@ -2,7 +2,6 @@ package util;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -28,7 +27,7 @@ import dto.W3CData;
  */
 public class WriteListToExcelFile {
 
-	public static void writeCountryListToFile(String fileName, List<W3CData> countryList) throws Exception {
+	public static void writeCountryListToFile(String fileName, List<String[]> countryList) throws Exception {
 		Workbook workbook = null;
 
 		if (fileName.endsWith("xlsx")) {
@@ -40,61 +39,73 @@ public class WriteListToExcelFile {
 		}
 
 		Sheet sheet = workbook.createSheet("Countries");
-
-		Iterator<W3CData> iterator = countryList.iterator();
+		
+		
+		
+		
+		Iterator<String[]> iterator = countryList.iterator();
 
 		int rowIndex = 0;
 		while (iterator.hasNext()) {
-			W3CData country = iterator.next();
+			String[] country = iterator.next();
 			Row row = sheet.createRow(rowIndex++);
-			Cell cell0 = row.createCell(0);
-			cell0.setCellValue(country.getCompany());
-			Cell cell1 = row.createCell(1);
-			cell1.setCellValue(country.getContact());
-			Cell cell2 = row.createCell(2);
-			cell2.setCellValue(country.getCountry());
+			for(int i = 0 ; i < country.length; i++){
+				Cell cell0 = row.createCell(i);
+				cell0.setCellValue(country[i]);
+			}
 		}
 
 		// lets write the excel data to file now
 		FileOutputStream fos = new FileOutputStream(fileName);
 		workbook.write(fos);
+		workbook.close();
 		fos.close();
 		System.out.println(fileName + " written successfully");
 	}
 
 	public static void main(String args[]) throws Exception {
 		
-		String url = "http://www.w3schools.com/css/css_table.asp";
-		String tableAndId = "table#customers";
+		String url = "http://tcsv.ntcb.co.kr/admin_main.do";
+		String tableAndId = "table.table-default";
 		List<W3CData> list = new ArrayList<W3CData>();
 
+		ArrayList<String[]> data = new ArrayList<String[]>();
 		try {
-			Document doc = Jsoup.connect(url).get();
+			Document doc = Jsoup.connect(url).cookie("JSESSIONID", "bacdLtf5EUpzGaOnEcQzv").get();
+			
 			Elements tableElements = doc.select(tableAndId);
 			Elements tableHeaderEles = tableElements.select("tr th");
-			W3CData tmp = new W3CData();
-			tmp.setCompany(tableHeaderEles.get(0).text());
-			tmp.setContact(tableHeaderEles.get(1).text());
-			tmp.setCountry(tableHeaderEles.get(2).text());
-			list.add(tmp);
-
-			Elements tableRowElements = tableElements.select("tr");
-			for (int i = 0; i < tableRowElements.size(); i++) {
-				Element row = tableRowElements.get(i);
-				Elements rowItems = row.select("td");
-				if (rowItems.size() != 0) {
-					W3CData tmp2 = new W3CData();
-					tmp2.setCompany(rowItems.get(0).text());
-					tmp2.setContact(rowItems.get(1).text());
-					tmp2.setCountry(rowItems.get(2).text());
-					list.add(tmp2);
+			
+			int arraySize;
+			if (tableHeaderEles.size() != 0){
+				arraySize = tableHeaderEles.size();
+				String[] s = new String[arraySize];
+				for (int i = 0 ; i<arraySize ; i++) {
+					s[i] = tableHeaderEles.get(i).text();
 				}
+				data.add(s);
+			}
+			else {
+				Element tableHeaderEles2 = tableElements.select("tr").first();
+				arraySize = tableHeaderEles2.getAllElements().select("td").size();
+			}
+
+			Elements tableRowElements = tableElements.select("tr td");
+			int table = tableRowElements.size();
+			for(int j = 0 ; j < tableRowElements.size() / arraySize  ; j++){
+				String[] s2 = new String[arraySize];
+				int num = 0;
+				for (int i = j * arraySize; num < arraySize ; num++) {
+					s2[num] = tableRowElements.get(i++).text();
+				}
+				num = 0;
+				data.add(s2);
 			}
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		 WriteListToExcelFile.writeCountryListToFile("Countries.xls", list);
+		 WriteListToExcelFile.writeCountryListToFile("Countries.xlsx", data);
 	}
 }

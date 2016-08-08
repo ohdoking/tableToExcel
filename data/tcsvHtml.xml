@@ -341,7 +341,7 @@ $( document ).ready( function(){
  //실사자 검색함수
  function srch(){
  	//조건에 따라 검색한 실사자 테이블.
-       var html ='<table class="table table-info">';
+       var html ='<f class="table table-info">';
 				html += '<thead>';
 				html += '<tr>';
 				html += '	<th>선택</th>';
