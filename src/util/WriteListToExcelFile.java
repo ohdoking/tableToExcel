@@ -62,11 +62,9 @@ public class WriteListToExcelFile {
 		fos.close();
 		System.out.println(fileName + " written successfully");
 	}
-
-	public static void main(String args[]) throws Exception {
+	
+	public static void setExcel(String url, String tableAndId ) throws Exception{
 		
-		String url = "http://tcsv.ntcb.co.kr/admin_main.do";
-		String tableAndId = "table.table-default";
 		List<W3CData> list = new ArrayList<W3CData>();
 
 		ArrayList<String[]> data = new ArrayList<String[]>();
@@ -107,5 +105,13 @@ public class WriteListToExcelFile {
 		}
 
 		 WriteListToExcelFile.writeCountryListToFile("Countries.xlsx", data);
+	}
+
+	public static void main(String args[]) throws Exception {
+		
+		String url = "http://tcsv.ntcb.co.kr/admin_main.do";
+		String tableAndId = "table.table-default";
+		
+		setExcel(url, tableAndId);
 	}
 }
